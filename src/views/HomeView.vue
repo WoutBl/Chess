@@ -5,7 +5,7 @@
         v-for="(cell, y) in row"
         :key="y"
         class="cell"
-        @click="handleCellClick(x, y)"
+        @click="handleCellClick(y, x)"
       >
         <PieceComponent class="piece" :piece="cell" />
       </div>
@@ -31,7 +31,7 @@ const fromPiece = ref<fromPieceWithLocation | null>(null);
 const handleCellClick = (x: number, y: number) => {
   if(fromPiece.value?.fromPiece){
     console.log(fromPiece.value)
-    const to: vector2 = {x: x + 1 , y: y + 1}
+    const to: vector2 = {x: x , y: y}
 
     movePiece(fromPiece.value.toLocation, to, fromPiece.value.fromPiece)
     fromPiece.value = null

@@ -20,15 +20,17 @@ white = 'white'
 
 const movePiece = (from: vector2, to: vector2, piece: Piece) => {
   const validMoves = getValidMoves(from, piece)
-  // check if valid moves is in the list of valid moves
   console.log(validMoves)
   console.log(to)
-  console.log(validMoves.indexOf(to))
-  if(validMoves.indexOf(to) !== -1) { // double chek
-    console.log("is valid")
-    BoardState.value[to.x][to.y] = piece
+  const isValid = validMoves.some(move => move.x === to.x && move.y === to.y);
+
+  if (isValid) {
+    console.log("is valid");
+    BoardState.value[to.x][to.y] = piece;
+    BoardState.value[from.x][from.y] = null; // clear the old position
+  } else {
+    console.log("invalid move");
   }
-  if (!validMoves) return
 }
 
 const getValidMoves = (from: vector2, piece:Piece): vector2[] => {
