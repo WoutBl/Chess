@@ -1,16 +1,15 @@
 <template>
-  <div v-if="piece" class="piece">
-    <img :src="getPieceImage(piece)" :alt="piece.type" class="piece-image" />
+  <div v-if="piece" class="piece" draggable="true">
+    <img :src="getPieceImage(piece)" :alt="piece.type" class="piece-image" draggable="false" />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { PropType } from 'vue';
+import type { Piece, PieceType } from '@/hooks/BoardState'
 
-type Piece = {
-  type: 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
-  color: 'white' | 'black';
-};
+
+
 
 const props = defineProps({
   piece: {

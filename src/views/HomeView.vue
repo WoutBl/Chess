@@ -1,6 +1,6 @@
 <template>
   <div class="board">
-    <div v-for="(row, x) in board" :key="x" class="row">
+    <div v-for="(row, x) in BoardState" :key="x" class="row">
       <div
         v-for="(cell, y) in row"
         :key="y"
@@ -14,65 +14,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import PieceComponent from '../components/PieceComponent.vue';
+import { ref } from 'vue'
+import PieceComponent from '../components/PieceComponent.vue'
+import { BoardState, type Piece } from '@/hooks/BoardState'
+import {useMovePiece , type vector2 } from '@/hooks/MovePiece'
 
-type Piece = {
-  type: 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
-  color: 'white' | 'black';
-};
+type fromPieceWithLocation = {
+  fromPiece: Piece | null;
+  toLocation: vector2;
+}
 
-type Board = (Piece | null)[][];
-
-const initialBoard: Board = [
-  [
-    { type: 'rook', color: 'black' },
-    { type: 'knight', color: 'black' },
-    { type: 'bishop', color: 'black' },
-    { type: 'queen', color: 'black' },
-    { type: 'king', color: 'black' },
-    { type: 'bishop', color: 'black' },
-    { type: 'knight', color: 'black' },
-    { type: 'rook', color: 'black' },
-  ],
-  Array(8).fill(null).map(() => ({ type: 'pawn', color: 'black' })),
-  Array(8).fill(null),
-  Array(8).fill(null),
-  Array(8).fill(null),
-  Array(8).fill(null),
-  Array(8).fill(null).map(() => ({ type: 'pawn', color: 'white' })),
-  [
-    { type: 'rook', color: 'white' },
-    { type: 'knight', color: 'white' },
-    { type: 'bishop', color: 'white' },
-    { type: 'queen', color: 'white' },
-    { type: 'king', color: 'white' },
-    { type: 'bishop', color: 'white' },
-    { type: 'knight', color: 'white' },
-    { type: 'rook', color: 'white' },
-  ]
-];
-
-const board = ref<Board>(initialBoard);
-
-const selectedPiece = ref<Piece | null>(null);
-const selectedPosition = ref<{ x: number; y: number } | null>(null);
+const { movePiece } = useMovePiece()
+const fromPiece = ref<fromPieceWithLocation | null>(null);
+const toLocation = ref<vector2 | null>(null);
 
 const handleCellClick = (x: number, y: number) => {
-  const cell = board.value[x][y];
+  if(fromPiece.value?.fromPiece){
+    if(toLocation.value){
 
-  if (selectedPiece.value) {
-    // Move the selected piece
-    board.value[x][y] = selectedPiece.value;
-    if (selectedPosition.value) {
-      board.value[selectedPosition.value.x][selectedPosition.value.y] = null;
+      movePiece(fromPiece.value.toLocation, toLocation.value, fromPiece.value.fromPiece)
+    }else{
+      toLocation.value = { x, y }
     }
-    selectedPiece.value = null;
-    selectedPosition.value = null;
-  } else if (cell) {
-    // Select a piece
-    selectedPiece.value = cell;
-    selectedPosition.value = { x, y };
+  }else{
+    // no selected piece - select piece
+    fromPiece.value = {
+      fromPiece: BoardState.value[x][y],
+      toLocation: { x, y }
+    }
   }
 };
 </script>
