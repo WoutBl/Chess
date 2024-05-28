@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import PieceComponent from '../components/PieceComponent.vue'
 import { BoardState, type Piece } from '@/hooks/BoardState'
 import {useMovePiece , type vector2 } from '@/hooks/MovePiece'
@@ -26,16 +26,16 @@ type fromPieceWithLocation = {
 
 const { movePiece } = useMovePiece()
 const fromPiece = ref<fromPieceWithLocation | null>(null);
-const toLocation = ref<vector2 | null>(null);
+
 
 const handleCellClick = (x: number, y: number) => {
   if(fromPiece.value?.fromPiece){
-    if(toLocation.value){
+    console.log(fromPiece.value)
+    const to: vector2 = {x: x + 1 , y: y + 1}
 
-      movePiece(fromPiece.value.toLocation, toLocation.value, fromPiece.value.fromPiece)
-    }else{
-      toLocation.value = { x, y }
-    }
+    movePiece(fromPiece.value.toLocation, to, fromPiece.value.fromPiece)
+    fromPiece.value = null
+
   }else{
     // no selected piece - select piece
     fromPiece.value = {

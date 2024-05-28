@@ -21,8 +21,11 @@ white = 'white'
 const movePiece = (from: vector2, to: vector2, piece: Piece) => {
   const validMoves = getValidMoves(from, piece)
   // check if valid moves is in the list of valid moves
-
-  if(validMoves.includes(to)) { // double chek
+  console.log(validMoves)
+  console.log(to)
+  console.log(validMoves.indexOf(to))
+  if(validMoves.indexOf(to) !== -1) { // double chek
+    console.log("is valid")
     BoardState.value[to.x][to.y] = piece
   }
   if (!validMoves) return
@@ -55,19 +58,25 @@ const isValidPawnMoves = (current: vector2, type: Player  ) : vector2[] =>  {
   const canMoveForward: boolean = !!(boardState[current.x][current.y + direction] )
   const canMoveForwardTwice = !!(boardState[current.x][current.y + 2 * direction] )
   const canAttackRight = (boardState[current.x + direction][current.y + direction]?.color !== type)
+// deze is broken
   const canAttackLeft = (boardState[current.x - direction][current.y + direction]?.color !== type)
 
 
   if(canMoveForward && startRow !== current.y){
+    console.log("canMoveForward")
     availableMoves.push({ x: current.x, y: current.y + direction })
-  } else if (canMoveForward && canMoveForwardTwice && startRow === current.y){
+  }if (canMoveForward && canMoveForwardTwice && startRow === current.y){
+    console.log("canMoveForwardtwice")
     availableMoves.push({x: current.x, y: current.y + 2 * direction})
-  } else if(canAttackLeft){
+  }if(canAttackLeft){
+    console.log("left")
     availableMoves.push({x: current.x - direction, y: current.y + direction})
-  } else if(canAttackRight){
+  }if(canAttackRight){
+    console.log("right")
     availableMoves.push({x: current.x + direction, y: current.y + direction})
   }
 
+  // laatste rij checken
   return availableMoves
 }
 
