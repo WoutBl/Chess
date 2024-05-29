@@ -2,9 +2,10 @@
   <div class="board">
     <!-- Horizontal numbering -->
     <div class="row header">
-      <div class="cell header-cell"></div> <!-- Empty cell for the top-left corner -->
+      <div class="cell header-cell"></div>
+      <!-- Empty cell for the top-left corner -->
       <div v-for="x in BoardState[0].length" :key="'header-' + x" class="cell header-cell">
-        {{ x - 1 }} /{{String.fromCharCode(97 + x - 1)}}
+        {{ x - 1 }} /{{ String.fromCharCode(97 + x - 1) }}
       </div>
     </div>
 
@@ -17,39 +18,39 @@
         <PieceComponent class="piece" :piece="cell" />
       </div>
     </div>
+    <div class="turn-indicator">
+      Current Turn: {{ currentPlayer === 'white' ? 'White' : 'Black' }}
+    </div>
   </div>
 </template>
-
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import PieceComponent from '../components/PieceComponent.vue'
-import { BoardState, type Piece } from '@/hooks/BoardState'
-import {useMovePiece , type vector2 } from '@/hooks/MovePiece'
+import { BoardState, type Piece, currentPlayer } from '@/hooks/BoardState'
+import { useMovePiece, type vector2 } from '@/hooks/MovePiece'
 
 type fromPieceWithLocation = {
-  fromPiece: Piece | null;
-  Location: vector2;
+  fromPiece: Piece | null
+  Location: vector2
 }
 
 const { movePiece } = useMovePiece()
-const fromPiece = ref<fromPieceWithLocation | null>(null);
-
+const fromPiece = ref<fromPieceWithLocation | null>(null)
 
 const handleCellClick = (row: number, col: number) => {
-  if(fromPiece.value?.fromPiece){
-    const to: vector2 = {row: row , col: col}
+  if (fromPiece.value?.fromPiece) {
+    const to: vector2 = { row: row, col: col }
     movePiece(fromPiece.value.Location, to, fromPiece.value.fromPiece)
     fromPiece.value = null
-
-  }else{
+  } else {
     // no selected piece - select piece
     fromPiece.value = {
       fromPiece: BoardState.value[row][col],
       Location: { row, col }
     }
   }
-};
+}
 </script>
 
 <style scoped>
@@ -98,5 +99,10 @@ const handleCellClick = (row: number, col: number) => {
   border: none; /* Remove border for header cells */
   color: black; /* Set text color to black for visibility */
   background-color: white !important;
+}
+.turn-indicator {
+  margin-top: 20px;
+  font-size: 24px;
+  text-align: center;
 }
 </style>

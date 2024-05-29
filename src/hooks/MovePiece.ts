@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import type { Piece } from '@/hooks/BoardState'
-import { BoardState, PieceType } from '@/hooks/BoardState'
+import { BoardState, currentPlayer, PieceType } from '@/hooks/BoardState'
 
 const selectedPiece = ref<Piece | null>(null)
 const selectedPosition = ref<{ x: number; y: number } | null>(null)
@@ -19,9 +19,14 @@ const movePiece = (from: vector2, to: vector2, piece: Piece) => {
   const validMoves = getValidMoves(from, piece)
 
   const isValid = validMoves.some((move) => move.row === to.row && move.col === to.col)
+  if (piece.color !== currentPlayer.value) {
+    console.log("It's not your turn")
+    return
+  }
   if (isValid) {
     BoardState.value[to.row][to.col] = piece
     BoardState.value[from.row][from.col] = null // clear the old position
+    currentPlayer.value = currentPlayer.value === Player.white ? Player.black : Player.white // Switch turns
   } else {
     console.log('invalid move')
   }
