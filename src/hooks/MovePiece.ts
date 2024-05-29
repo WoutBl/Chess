@@ -37,6 +37,8 @@ const getValidMoves = (from: vector2, piece: Piece): vector2[] => {
       return isValidKnightMoves(from, piece.color)
     case PieceType.ROOK:
       return isValidRookMoves(from, piece.color)
+    case PieceType.KING:
+      return isValidKingMoves(from, piece.color)
     default:
       return []
   }
@@ -245,6 +247,55 @@ const isValidRookMoves = (current: vector2, type: Player): vector2[] => {
       }
       row += direction.row
       col += direction.col
+    }
+  }
+
+  return availableMoves
+}
+
+/**
+ * Get all possible moves for king
+ * @param current current location of the king
+ * @param type black or white piece
+ * @returns array of possible move locations
+ */
+const isValidKingMoves = (current: vector2, type: Player): vector2[] => {
+  const availableMoves: vector2[] = []
+  const boardState = BoardState.value
+
+  // Check if the current position is within the bounds of the board
+  if (
+    current.row < 0 ||
+    current.row >= boardState.length ||
+    current.col < 0 ||
+    current.col >= boardState[0].length
+  ) {
+    return availableMoves // Return empty array if out of bounds
+  }
+
+  // King moves one square in any direction
+  const moves = [
+    { row: current.row - 1, col: current.col - 1 }, // top-left
+    { row: current.row - 1, col: current.col }, // top
+    { row: current.row - 1, col: current.col + 1 }, // top-right
+    { row: current.row, col: current.col - 1 }, // left
+    { row: current.row, col: current.col + 1 }, // right
+    { row: current.row + 1, col: current.col - 1 }, // bottom-left
+    { row: current.row + 1, col: current.col }, // bottom
+    { row: current.row + 1, col: current.col + 1 } // bottom-right
+  ]
+
+  for (const move of moves) {
+    if (
+      move.row >= 0 &&
+      move.row < boardState.length &&
+      move.col >= 0 &&
+      move.col < boardState[0].length
+    ) {
+      const cell = boardState[move.row][move.col]
+      if (cell == null || cell.color !== type) {
+        availableMoves.push(move) // Can move to empty square or capture opponent's piece
+      }
     }
   }
 
