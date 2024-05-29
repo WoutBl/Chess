@@ -35,6 +35,8 @@ const getValidMoves = (from: vector2, piece: Piece): vector2[] => {
       return isValidBishopMoves(from, piece.color)
     case PieceType.KNIGHT:
       return isValidKnightMoves(from, piece.color)
+    case PieceType.ROOK:
+      return isValidRookMoves(from, piece.color)
     default:
       return []
   }
@@ -193,6 +195,56 @@ const isValidKnightMoves = (current: vector2, type: Player): vector2[] => {
       if (cell == null || cell.color !== type) {
         availableMoves.push(move) // Can move to empty square or capture opponent's piece
       }
+    }
+  }
+
+  return availableMoves
+}
+
+/**
+ * Get all possible moves for rook
+ * @param current current location of the rook
+ * @param type black or white piece
+ * @returns array of possible move locations
+ */
+const isValidRookMoves = (current: vector2, type: Player): vector2[] => {
+  const availableMoves: vector2[] = []
+  const boardState = BoardState.value
+
+  // Check if the current position is within the bounds of the board
+  if (
+    current.row < 0 ||
+    current.row >= boardState.length ||
+    current.col < 0 ||
+    current.col >= boardState[0].length
+  ) {
+    return availableMoves // Return empty array if out of bounds
+  }
+
+  // Rook moves vertically and horizontally until it hits another piece or the edge of the board
+  const directions = [
+    { row: -1, col: 0 }, // up
+    { row: 1, col: 0 }, // down
+    { row: 0, col: -1 }, // left
+    { row: 0, col: 1 } // right
+  ]
+
+  for (const direction of directions) {
+    let row = current.row + direction.row
+    let col = current.col + direction.col
+
+    while (row >= 0 && row < boardState.length && col >= 0 && col < boardState[0].length) {
+      const cell = boardState[row][col]
+      if (cell == null) {
+        availableMoves.push({ row, col })
+      } else {
+        if (cell.color !== type) {
+          availableMoves.push({ row, col }) // Can capture opponent's piece
+        }
+        break // Stop moving in this direction if there's a piece in the way
+      }
+      row += direction.row
+      col += direction.col
     }
   }
 
