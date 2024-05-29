@@ -1,9 +1,9 @@
 import { ref } from 'vue'
 import type { Piece } from '@/hooks/BoardState'
 import { BoardState, currentPlayer, PieceType } from '@/hooks/BoardState'
+import { usePeerConnection } from '@/hooks/PeerConnection'
 
-const selectedPiece = ref<Piece | null>(null)
-const selectedPosition = ref<{ x: number; y: number } | null>(null)
+const { sendMove } = usePeerConnection()
 
 export type vector2 = {
   row: number
@@ -15,6 +15,9 @@ export enum Player {
   white = 'white'
 }
 
+/**
+ * move piece
+ */
 const movePiece = (from: vector2, to: vector2, piece: Piece) => {
   const validMoves = getValidMoves(from, piece)
 
@@ -27,6 +30,8 @@ const movePiece = (from: vector2, to: vector2, piece: Piece) => {
     BoardState.value[to.row][to.col] = piece
     BoardState.value[from.row][from.col] = null // clear the old position
     currentPlayer.value = currentPlayer.value === Player.white ? Player.black : Player.white // Switch turns
+
+    sendMove(from, to, piece)
   } else {
     console.log('invalid move')
   }

@@ -1,6 +1,5 @@
 <template>
   <div class="board">
-    <!-- Horizontal numbering -->
     <div class="row header">
       <div class="cell header-cell"></div>
       <!-- Empty cell for the top-left corner -->
@@ -10,37 +9,38 @@
     </div>
 
     <div v-for="(rows, row) in BoardState" :key="row" class="row">
-      <!-- Vertical numbering -->
-      <div class="cell header-cell">
-        {{ row }}
-      </div>
+      <div class="cell header-cell">{{ row }}</div>
       <div v-for="(cell, col) in rows" :key="col" class="cell" @click="handleCellClick(row, col)">
         <PieceComponent class="piece" :piece="cell" />
       </div>
     </div>
+
     <div class="turn-indicator">
       Current Turn: {{ currentPlayer === 'white' ? 'White' : 'Black' }}
+    </div>
+    <div class="peer-actions">
+      <button @click="startHost">Start Host</button>
+      <button @click="joinHost">Join Host</button>
+      <input v-model="hostId" placeholder="Enter Host ID to Join" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import PieceComponent from '../components/PieceComponent.vue'
-import { BoardState, type Piece, currentPlayer } from '@/hooks/BoardState'
+import { BoardState, currentPlayer, type Piece } from '@/hooks/BoardState'
 import { useMovePiece, type vector2 } from '@/hooks/MovePiece'
-
-type fromPieceWithLocation = {
-  fromPiece: Piece | null
-  Location: vector2
-}
+import { usePeerConnection } from '@/hooks/PeerConnection'
 
 const { movePiece } = useMovePiece()
-const fromPiece = ref<fromPieceWithLocation | null>(null)
+const { startPeer } = usePeerConnection()
+const fromPiece = ref<{ fromPiece: Piece | null; Location: vector2 } | null>(null)
+const hostId = ref<string>('')
 
 const handleCellClick = (row: number, col: number) => {
   if (fromPiece.value?.fromPiece) {
-    const to: vector2 = { row: row, col: col }
+    const to: vector2 = { row, col }
     movePiece(fromPiece.value.Location, to, fromPiece.value.fromPiece)
     fromPiece.value = null
   } else {
@@ -50,6 +50,14 @@ const handleCellClick = (row: number, col: number) => {
       Location: { row, col }
     }
   }
+}
+
+const startHost = () => {
+  startPeer('hey', true)
+}
+
+const joinHost = () => {
+  startPeer(hostId.value, false)
 }
 </script>
 
@@ -104,5 +112,11 @@ const handleCellClick = (row: number, col: number) => {
   margin-top: 20px;
   font-size: 24px;
   text-align: center;
+}
+.peer-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 </style>
