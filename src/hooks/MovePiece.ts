@@ -33,6 +33,8 @@ const getValidMoves = (from: vector2, piece: Piece): vector2[] => {
       return isValidPawnMoves(from, piece.color)
     case PieceType.BISHOP:
       return isValidBishopMoves(from, piece.color)
+    case PieceType.KNIGHT:
+      return isValidKnightMoves(from, piece.color)
     default:
       return []
   }
@@ -148,60 +150,57 @@ const isValidBishopMoves = (current: vector2, type: Player): vector2[] => {
   return availableMoves
 }
 
+/**
+ * Get all possible moves for knight
+ * @param current current location of the knight
+ * @param type black or white piece
+ * @returns array of possible move locations
+ */
+const isValidKnightMoves = (current: vector2, type: Player): vector2[] => {
+  const availableMoves: vector2[] = []
+  const boardState = BoardState.value
+
+  // Check if the current position is within the bounds of the board
+  if (
+    current.row < 0 ||
+    current.row >= boardState.length ||
+    current.col < 0 ||
+    current.col >= boardState[0].length
+  ) {
+    return availableMoves // Return empty array if out of bounds
+  }
+
+  // Knight moves in an L-shape: two squares in one direction and one square perpendicular
+  const moves = [
+    { row: current.row - 2, col: current.col - 1 },
+    { row: current.row - 2, col: current.col + 1 },
+    { row: current.row - 1, col: current.col - 2 },
+    { row: current.row - 1, col: current.col + 2 },
+    { row: current.row + 1, col: current.col - 2 },
+    { row: current.row + 1, col: current.col + 2 },
+    { row: current.row + 2, col: current.col - 1 },
+    { row: current.row + 2, col: current.col + 1 }
+  ]
+
+  for (const move of moves) {
+    if (
+      move.row >= 0 &&
+      move.row < boardState.length &&
+      move.col >= 0 &&
+      move.col < boardState[0].length
+    ) {
+      const cell = boardState[move.row][move.col]
+      if (cell == null || cell.color !== type) {
+        availableMoves.push(move) // Can move to empty square or capture opponent's piece
+      }
+    }
+  }
+
+  return availableMoves
+}
+
 export const useMovePiece = () => {
   return {
     movePiece
   }
 }
-
-// const handleCellClick = (FromX: number, FromY: number) => {
-//   const cell = BoardState.value[FromX][FromY];
-//
-//   if (selectedPiece.value) {
-//     BoardState.value[FromX][FromY] = selectedPiece.value;
-//     if (selectedPosition.value) {
-//       BoardState.value[selectedPosition.value.x][selectedPosition.value.y] = null;
-//     }
-//     selectedPiece.value = null;
-//     selectedPosition.value = null;
-//   } else if (cell) {
-//     selectedPiece.value = cell;
-//     selectedPosition.value = { x: FromX, y: FromY };
-//   }
-// };
-//
-//
-//
-//
-//
-//
-//
-// const isValidPawnMove = (fromX: number, fromY: number): boolean => {
-//   if (!selectedPiece.value || !selectedPosition.value) return false;
-//
-//   const { x: startX, y: startY } = selectedPosition.value;
-//   const piece = selectedPiece.value;
-//
-//   if (piece.type === 'pawn') {
-//     const direction = piece.color === 'white' ? -1 : 1;
-//
-//     // Move forward
-//     if (startX + direction === fromX && startY === fromY && !board.value[fromX][fromY]) {
-//       return true;
-//     }
-//
-//     // Capture diagonally
-//     if (
-//       startX + direction === fromX &&
-//       (startY - 1 === fromY || startY + 1 === fromY) &&
-//       board.value[fromX][fromY] &&
-//       board.value[fromX][fromY]?.color !== piece.color
-//     ) {
-//       return true;
-//     }
-//   }
-//
-//   return false;
-// };
-//
-//
