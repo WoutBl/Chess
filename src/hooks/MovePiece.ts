@@ -1,7 +1,8 @@
 import { ref } from 'vue'
-import type { Piece } from '@/hooks/BoardState'
+import { gameFinished, type Piece } from '@/hooks/BoardState'
 import { BoardState, currentPlayer, PieceType } from '@/hooks/BoardState'
 import { usePeerConnection } from '@/hooks/PeerConnection'
+import { useArrayFilter } from '@vueuse/core'
 
 const { sendMove } = usePeerConnection()
 
@@ -15,48 +16,60 @@ export enum Player {
   white = 'white'
 }
 
+
+
 const inCheck = ref<Player | null>(null);
+export const inCheckMate = ref<boolean>(false)
+;
+
 
 /**
  * move piece
  */
-const movePiece = (from: vector2, to: vector2, piece: Piece) => {
-  let validMoves = getValidMoves(from, piece);
-
-  // If the player's king is in check, filter only moves that resolve the check
-  if (inCheck.value === piece.color) {
-    validMoves = validMoves.filter(move => !doesMoveLeaveKingInCheck(from, move, piece));
-    if (validMoves.length === 0) {
-      console.log("King is in check, you can't move this piece.");
-      return;
-    }
+const movePiece = (from: vector2, to: vector2, piece: Piece): boolean => {
+  if (gameFinished.value) {
+    return false
   }
-
-  console.log(validMoves);
-  const isValid = validMoves.some((move) => move.row === to.row && move.col === to.col);
+  if(inCheckMate.value) {
+    return false
+  }
   if (piece.color !== currentPlayer.value) {
     console.log("It's not your turn");
-    return;
+    return false;
   }
-  if (isValid) {
-    BoardState.value[to.row][to.col] = piece;
-    BoardState.value[from.row][from.col] = null; // clear the old position
-    currentPlayer.value = currentPlayer.value === Player.white ? Player.black : Player.white; // Switch turns
+  const validMoves = getValidMoves(from, piece);
+  const isValid = validMoves.some((move) => move.row === to.row && move.col === to.col);
+  if (!isValid) {
+    console.log('Invalid move');
+    return false;
+  }
+  BoardState.value[to.row][to.col] = piece;
+  BoardState.value[from.row][from.col] = null; // clear the old position
 
-    sendMove(from, to, piece);
+  // After making the move, check if the move puts the opponent's king in check
+  const checkStatus = isCheck();
 
-    if (isCheck()) {
-      console.log("Check!");
-
-    } else {
-      inCheck.value = null; // Clear check status if no longer in check
-    }
+  if (checkStatus) {
+    console.log("Check!");
+    inCheck.value = currentPlayer.value === Player.white ? Player.black : Player.white;
   } else {
-    console.log('invalid move');
+    inCheck.value = null;
   }
+
+  // Check for checkmate
+  if (isCheckmate()) {
+    console.log("Checkmate!");
+    gameFinished.value = true;
+    inCheckMate.value = true;
+  } else {
+    currentPlayer.value = currentPlayer.value === Player.white ? Player.black : Player.white; // Switch turns
+  }
+
+  sendMove(from, to, piece);
+  return true
 };
 
-const getValidMoves = (from: vector2, piece: Piece): vector2[] => {
+export const getValidMoves = (from: vector2, piece: Piece): vector2[] => {
   switch (piece.type) {
     case PieceType.PAWN:
       return isValidPawnMoves(from, piece.color)
@@ -116,10 +129,15 @@ const isCheck = () => {
 
 const isCheckmate = (): boolean => {
   const playerInCheck = inCheck.value;
+  let isInCheckMate = false
   if (!playerInCheck) return false;
 
   const allMoves = getAllValidMoves(playerInCheck);
-  return allMoves.every(move => doesMoveLeaveKingInCheck(move.from, move.to, move.piece));
+  isInCheckMate = allMoves.every(move => doesMoveLeaveKingInCheck(move.from, move.to, move.piece));
+  if (isInCheckMate) {
+    inCheckMate.value = isInCheckMate
+  }
+  return inCheckMate.value
 };
 
 const getAllValidMoves = (player: Player): Array<{ from: vector2, to: vector2, piece: Piece }> => {
@@ -177,7 +195,6 @@ const isKingInCheck = (board: Piece[][], player: Player): boolean => {
 
 const doesMoveLeaveKingInCheck = (from: vector2, to: vector2, piece: Piece): boolean => {
   const tempBoard = JSON.parse(JSON.stringify(BoardState.value)); // create a temporary board to simulate the move
-  console.log(tempBoard)
   tempBoard[to.row][to.col] = piece;
   tempBoard[from.row][from.col] = null;
 
@@ -199,7 +216,6 @@ const isValidPawnMoves = (current: vector2, type: Player): vector2[] => {
   const direction = type === Player.black ? 1 : -1
   const startRow = type === Player.white ? 6 : 1
   const availableMoves: vector2[] = []
-  console.log(type)
   // immutable
   const boardState = BoardState.value
 

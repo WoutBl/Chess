@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import type { PropType } from 'vue';
+import { type PropType, watch } from 'vue'
 import type { Piece, PieceType } from '@/hooks/BoardState'
 
 
@@ -15,7 +15,7 @@ const props = defineProps({
   piece: {
     type: Object as PropType<Piece | null>,
     required: false,
-  }
+  },
 });
 
 const getPieceImage = (piece: Piece | null): string => {
@@ -41,6 +41,9 @@ const getPieceImage = (piece: Piece | null): string => {
 </script>
 
 <style scoped>
+.movable {
+  background-color: hotpink !important;
+}
 .piece-image {
   width: 100%;
   height: 100%;
