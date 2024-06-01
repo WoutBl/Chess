@@ -17,11 +17,7 @@
       <div class="turn-indicator">
         Current Turn: {{ currentPlayer === 'white' ? 'White' : 'Black' }}
       </div>
-      <div class="peer-actions">
-        <button class="button" @click="startHost">Start Host</button>
-        <button class="button" @click="joinHost">Join Host</button>
-        <input v-model="hostId" placeholder="Enter Host ID to Join" />
-      </div>
+
     </div>
 
   </div>
@@ -39,12 +35,9 @@ import { ref, watch } from 'vue'
 import PieceComponent from '../components/PieceComponent.vue'
 import { AvailableMovesCoordinates, BoardState, currentPlayer, type Piece } from '@/hooks/BoardState'
 import { getValidMoves, inCheckMate, useMovePiece, type vector2 } from '@/hooks/MovePiece'
-import { usePeerConnection } from '@/hooks/PeerConnection'
 
 const { movePiece } = useMovePiece()
-const { startPeer } = usePeerConnection()
 const fromPiece = ref<{ fromPiece: Piece | null; Location: vector2 } | null>(null)
-const hostId = ref<string>('')
 
 
 const handleCellClick = (row: number, col: number) => {
@@ -104,13 +97,7 @@ const isAvailableMove = (coords: vector2) : boolean=> {
 //   console.log(AvailableMovesCoordinates.value)
 // })
 
-const startHost = () => {
-  startPeer('hey', true)
-}
 
-const joinHost = () => {
-  startPeer(hostId.value, false)
-}
 </script>
 
 <style scoped>
@@ -225,13 +212,5 @@ const joinHost = () => {
   text-align: center;
 }
 
-.peer-actions {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  gap: 10px;
-  width: 50%;
-}
+
 </style>

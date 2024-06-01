@@ -1,7 +1,7 @@
 import { Peer } from 'peerjs'
 import { ref } from 'vue'
-import { BoardState, type Piece } from '@/hooks/BoardState'
-import type { vector2 } from './MovePiece'
+import { currentPlayer, type Piece } from '@/hooks/BoardState'
+import { Player, type vector2 } from './MovePiece'
 import { useMovePiece } from './MovePiece'
 
 const peer = ref<Peer | null>(null)
@@ -9,61 +9,106 @@ const conn = ref<any>(null)
 const isHost = ref<boolean>(false)
 
 const startPeer = (connectionId: string | null = null, host: boolean) => {
-  if (connectionId == null) {
-    peer.value = new Peer()
-    peer.value.on('open', (peerId) => {
-      console.log('My peer ID is: ' + peerId)
-    })
-  } else {
-    peer.value = new Peer(connectionId)
-    peer.value.on('open', (peerId) => {
-      console.log('My peer ID is: ' + peerId)
-    })
-  }
-
   isHost.value = host
 
   if (host) {
-    startHostConnection()
+    createPeer()
   } else {
-    startReceiverConnection(connectionId)
+    if (connectionId) {
+      createPeer()
+      peer.value?.on('open', () => {
+        startReceiverConnection(connectionId)
+      })
+    } else {
+      console.error('Host ID is required to join a host')
+    }
   }
+
+  peer.value.on('open', (peerId) => {
+    console.log('My peer ID is: ' + peerId)
+    if (host) {
+      startHostConnection()
+    }
+  })
+
+  peer.value.on('error', (err) => {
+    console.error('Peer error:', err)
+    if (err.type === 'unavailable-id' && isHost.value) {
+      console.log('ID is taken, generating a new ID')
+      createPeer()
+      startHostConnection()
+    }
+  })
+}
+
+const createPeer = (connectionId: string | null = null) => {
+  if (peer.value) {
+    peer.value.destroy()
+  }
+
+  peer.value = connectionId == null ? new Peer() : new Peer(connectionId)
 }
 
 const startHostConnection = () => {
   console.log('Waiting for connection...')
   peer.value?.on('connection', (connection) => {
+    console.log("connected")
     conn.value = connection
-    conn.value.on('data', (data: any) => {
-      console.log('Received data:', data)
-      if (data.type === 'move') {
-        const { from, to, piece } = data.payload
-        executeMove(from, to, piece)
-      }
-    })
+    setupConnectionHandlers()
   })
 }
 
 const startReceiverConnection = (hostId: string | null) => {
-  if (!hostId) return
+  if (!hostId) {
+    console.error('Host ID is required to connect as receiver')
+    return
+  }
 
   console.log('Connecting to host:', hostId)
   conn.value = peer.value?.connect(hostId)
-  conn.value.on('open', () => {
+  conn.value?.on('open', () => {
     console.log('Connected to host')
-    conn.value.on('data', (data: any) => {
-      console.log('Received data:', data)
-      if (data.type === 'move') {
-        const { from, to, piece } = data.payload
-        executeMove(from, to, piece)
-      }
-    })
+    setupConnectionHandlers()
+  })
+
+  conn.value?.on('error', (err: any) => {
+    console.error('Connection error:', err)
+  })
+}
+
+const setupConnectionHandlers = () => {
+  conn.value.on('data', (data: any) => {
+    console.log('Received data:', data)
+    if (data.type === 'move') {
+      const { from, to, piece } = data.payload
+      executeMove(from, to, piece)
+    }
+    if (data.type === 'turn') {
+      const { player } = data.payload
+      changeTurn(player)
+    }
+  })
+
+  conn.value.on('close', () => {
+    console.log('Connection closed')
+  })
+
+  conn.value.on('error', (err: any) => {
+    console.error('Connection error:', err)
   })
 }
 
 const sendMove = (from: vector2, to: vector2, piece: Piece) => {
+  console.log("sendMove")
   if (conn.value && conn.value.open) {
     conn.value.send({ type: 'move', payload: { from, to, piece } })
+  }
+}
+
+const sendTurn = (player: Player) => {
+  console.log("sendTurn")
+  if (conn.value && conn.value.open) {
+    conn.value.send({ type: 'turn', payload: { player } })
   }
 }
 
@@ -72,9 +117,14 @@ const executeMove = (from: vector2, to: vector2, piece: Piece) => {
   movePiece(from, to, piece)
 }
 
+const changeTurn = (player: Player) => {
+  currentPlayer.value = player
+}
+
 export const usePeerConnection = () => {
   return {
     startPeer,
-    sendMove
+    sendMove,
+    sendTurn
   }
 }

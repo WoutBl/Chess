@@ -2,9 +2,6 @@ import { ref } from 'vue'
 import { gameFinished, type Piece } from '@/hooks/BoardState'
 import { BoardState, currentPlayer, PieceType } from '@/hooks/BoardState'
 import { usePeerConnection } from '@/hooks/PeerConnection'
-import { useArrayFilter } from '@vueuse/core'
-
-const { sendMove } = usePeerConnection()
 
 export type vector2 = {
   row: number
@@ -16,59 +13,61 @@ export enum Player {
   white = 'white'
 }
 
-
-
-const inCheck = ref<Player | null>(null);
+const inCheck = ref<Player | null>(null)
 export const inCheckMate = ref<boolean>(false)
-;
-
 
 /**
  * move piece
+ * @param from
+ * @param to
+ * @param piece
  */
 const movePiece = (from: vector2, to: vector2, piece: Piece): boolean => {
+  const { sendMove, sendTurn } = usePeerConnection()
+
   if (gameFinished.value) {
     return false
   }
-  if(inCheckMate.value) {
+  if (inCheckMate.value) {
     return false
   }
   if (piece.color !== currentPlayer.value) {
-    console.log("It's not your turn");
-    return false;
+    console.log("It's not your turn")
+    return false
   }
-  const validMoves = getValidMoves(from, piece);
-  const isValid = validMoves.some((move) => move.row === to.row && move.col === to.col);
+  const validMoves = getValidMoves(from, piece)
+  const isValid = validMoves.some((move) => move.row === to.row && move.col === to.col)
   if (!isValid) {
-    console.log('Invalid move');
-    return false;
+    console.log('Invalid move')
+    return false
   }
-  BoardState.value[to.row][to.col] = piece;
-  BoardState.value[from.row][from.col] = null; // clear the old position
-
+  BoardState.value[to.row][to.col] = piece
+  BoardState.value[from.row][from.col] = null // clear the old position
+  sendMove(from, to, piece) // Send the move to the peer
   // After making the move, check if the move puts the opponent's king in check
-  const checkStatus = isCheck();
+  const checkStatus = isCheck()
 
   if (checkStatus) {
-    console.log("Check!");
-    inCheck.value = currentPlayer.value === Player.white ? Player.black : Player.white;
+    console.log("Check!")
+    inCheck.value = currentPlayer.value === Player.white ? Player.black : Player.white
   } else {
-    inCheck.value = null;
+    inCheck.value = null
   }
 
   // Check for checkmate
   if (isCheckmate()) {
-    console.log("Checkmate!");
-    gameFinished.value = true;
-    inCheckMate.value = true;
+    console.log("Checkmate!")
+    gameFinished.value = true
+    inCheckMate.value = true
   } else {
-    currentPlayer.value = currentPlayer.value === Player.white ? Player.black : Player.white; // Switch turns
+    currentPlayer.value = currentPlayer.value === Player.white ? Player.black : Player.white // Switch turns
+    sendTurn(currentPlayer.value)
   }
 
-  sendMove(from, to, piece);
-  return true
-};
 
+
+  return true
+}
 export const getValidMoves = (from: vector2, piece: Piece): vector2[] => {
   switch (piece.type) {
     case PieceType.PAWN:

@@ -3,35 +3,45 @@
     <div class="header">
       Chess
     </div>
-    <div class="buttonContainer" v-if="state == 'players'">
+    <div class="buttonContainer" v-if="state === 'players'">
       <button @click="onClickState('1player')" class="button">1 player</button>
       <button @click="onClickState('2players')" class="button">2 players</button>
     </div>
-    <div class="buttonContainer" v-if="state == '2players'">
+    <div class="buttonContainer" v-if="state === '2players'">
       <RouterLink to="/game" class="button">Local</RouterLink>
-      <button class="button">Online</button>
+      <button @click="onClickState('online')" class="button">Online</button>
+    </div>
+    <div class="buttonContainer" v-if="state === 'online'">
+      <button class="button" @click="startHost">Start Host</button>
+      <button class="button" @click="joinHost">Join Host</button>
+      <input v-model="hostId" placeholder="Enter Host ID to Join" />
     </div>
   </div>
-
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import {useRouter} from 'vue-router'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { usePeerConnection } from '@/hooks/PeerConnection';
 
-const state = ref('players')
-const router = useRouter()
+const state = ref('players');
+const router = useRouter();
+const { startPeer } = usePeerConnection();
+const hostId = ref<string>('');
 
-const onClickState = (nextState: string) =>{
-  state.value = nextState
-}
+const onClickState = (nextState: string) => {
+  state.value = nextState;
+};
 
-const onClickRouter = (nextState: string) => {
-  if(nextState === 'local'){
-    router.push('/game')
-  }
+const startHost = () => {
+  startPeer(null, true);  // Start host with a new random ID
+  router.push("/game");
+};
 
-}
+const joinHost = () => {
+  startPeer(hostId.value, false);  // Join the host with the provided ID
+  router.push("/game");
+};
 </script>
 
 <style scoped>
@@ -91,5 +101,15 @@ const onClickRouter = (nextState: string) => {
 
 .button:focus-visible {
   box-shadow: none;
+}
+
+.peer-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+  width: 50%;
 }
 </style>
