@@ -36,7 +36,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import PieceComponent from '../components/PieceComponent.vue'
-import { AvailableMovesCoordinates, BoardState, currentPlayer, type Piece } from '@/hooks/BoardState'
+import { AvailableMovesCoordinates, BoardState, currentPlayer, type Piece, inverted } from '@/hooks/BoardState'
 import { getValidMoves, inCheckMate, useMovePiece, type vector2 } from '@/hooks/MovePiece'
 import { hostID } from '@/hooks/PeerConnection'
 
@@ -97,9 +97,11 @@ const isAvailableMove = (coords: vector2) : boolean=> {
 }
 
 
-// watch(AvailableMovesCoordinates, () => {
-//   console.log(AvailableMovesCoordinates.value)
-// })
+watch(inverted, () => {
+  if(inverted){
+    BoardState.value.reverse()
+  }
+})
 
 
 </script>

@@ -1,6 +1,6 @@
 import { Peer } from 'peerjs'
 import { ref } from 'vue'
-import { currentPlayer, type Piece } from '@/hooks/BoardState'
+import { currentPlayer, type Piece, inverted } from '@/hooks/BoardState'
 import { Player, type vector2 } from './MovePiece'
 import { useMovePiece } from './MovePiece'
 
@@ -25,7 +25,7 @@ const startPeer = (connectionId: string | null = null, host: boolean) => {
     }
   }
 
-  peer.value.on('open', (peerId) => {
+  peer.value?.on('open', (peerId) => {
     console.log('My peer ID is: ' + peerId)
     hostID.value = peerId
     if (host) {
@@ -33,7 +33,7 @@ const startPeer = (connectionId: string | null = null, host: boolean) => {
     }
   })
 
-  peer.value.on('error', (err) => {
+  peer.value?.on('error', (err) => {
     console.error('Peer error:', err)
     if (err.type === 'unavailable-id' && isHost.value) {
       console.log('ID is taken, generating a new ID')
@@ -55,6 +55,7 @@ const startHostConnection = () => {
   console.log('Waiting for connection...')
   peer.value?.on('connection', (connection) => {
     console.log("connected")
+    inverted.value = false
     conn.value = connection
     setupConnectionHandlers()
   })
@@ -70,6 +71,7 @@ const startReceiverConnection = (hostId: string | null) => {
   conn.value = peer.value?.connect(hostId)
   conn.value?.on('open', () => {
     console.log('Connected to host')
+    inverted.value = true
     setupConnectionHandlers()
   })
 
@@ -116,6 +118,14 @@ const sendTurn = (player: Player) => {
 
 const executeMove = (from: vector2, to: vector2, piece: Piece) => {
   const { movePiece } = useMovePiece()
+  console.log(from, to, piece)
+  if(inverted) {
+    from.col = 7 - from.col
+    from.row = 7 - from.row
+    to.col = 7 - to.col
+    to.row = 7 - to.row
+  }
+  console.log(from, to, piece)
   movePiece(from, to, piece)
 }
 

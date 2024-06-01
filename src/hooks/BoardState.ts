@@ -53,6 +53,7 @@ const initialBoard = [
 export const BoardState = ref<Board>(initialBoard)
 export const currentPlayer = ref<Player>(Player.white)
 export const gameFinished = ref<boolean>(false)
+export const inverted = ref<boolean>(false)
 
 // export const AvailableMoves
 export const AvailableMovesCoordinates = ref<vector2[]>()
