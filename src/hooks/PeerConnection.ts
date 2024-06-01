@@ -28,6 +28,7 @@ const startPeer = (connectionId: string | null = null, host: boolean) => {
   peer.value.on('open', (peerId) => {
     console.log('My peer ID is: ' + peerId)
     hostID.value = peerId
+    localStorage.setItem('hostId', peerId)
     if (host) {
       startHostConnection()
     }
