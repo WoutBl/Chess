@@ -7,6 +7,7 @@ import { useMovePiece } from './MovePiece'
 const peer = ref<Peer | null>(null)
 const conn = ref<any>(null)
 const isHost = ref<boolean>(false)
+export const hostID = ref<string | null>(null)
 
 const startPeer = (connectionId: string | null = null, host: boolean) => {
   isHost.value = host
@@ -26,6 +27,7 @@ const startPeer = (connectionId: string | null = null, host: boolean) => {
 
   peer.value.on('open', (peerId) => {
     console.log('My peer ID is: ' + peerId)
+    hostID.value = peerId
     if (host) {
       startHostConnection()
     }

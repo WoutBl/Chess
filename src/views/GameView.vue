@@ -17,6 +17,9 @@
       <div class="turn-indicator">
         Current Turn: {{ currentPlayer === 'white' ? 'White' : 'Black' }}
       </div>
+      <div class="turn-indicator" v-if="hostID">
+        hostID:<br> {{ hostID }}
+      </div>
 
     </div>
 
@@ -35,6 +38,7 @@ import { ref, watch } from 'vue'
 import PieceComponent from '../components/PieceComponent.vue'
 import { AvailableMovesCoordinates, BoardState, currentPlayer, type Piece } from '@/hooks/BoardState'
 import { getValidMoves, inCheckMate, useMovePiece, type vector2 } from '@/hooks/MovePiece'
+import { hostID } from '@/hooks/PeerConnection'
 
 const { movePiece } = useMovePiece()
 const fromPiece = ref<{ fromPiece: Piece | null; Location: vector2 } | null>(null)
