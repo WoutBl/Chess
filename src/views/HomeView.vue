@@ -40,6 +40,7 @@ const startHost = () => {
 
 const joinHost = () => {
   startPeer(hostId.value, false);  // Join the host with the provided ID
+  localStorage.setItem("hostId", hostId.value);
   router.push("/game");
 };
 </script>
