@@ -60,8 +60,13 @@ function movePieceOnBoard(from: vector2, to: vector2, piece: Piece) {
  * @param to
  * @param piece
  */
-const movePiece = (from: vector2, to: vector2, piece: Piece): boolean => {
-  const { sendMove, sendTurn } = usePeerConnection()
+const movePiece = (from: vector2, to: vector2, piece: Piece, comesFromRemote: boolean = false): boolean => {
+  const { sendMove, sendTurn, isHost } = usePeerConnection()
+  // Restriction based on host and piece color for local moves
+  if (!comesFromRemote && (isHost.value && piece.color === Player.black) || !comesFromRemote && (!isHost.value && piece.color === Player.white)) {
+    console.log('You are not allowed to move this piece')
+    return false
+  }
 
   if (gameFinished.value) {
     return false
@@ -80,9 +85,19 @@ const movePiece = (from: vector2, to: vector2, piece: Piece): boolean => {
     return false
   }
 
+  // Check for checkmate
+  if (isCheckmate()) {
+    console.log('Checkmate!')
+    gameFinished.value = true
+    inCheckMate.value = true
+  }
+
   if (!hasCastled(from, to, piece)) {
     movePieceOnBoard(from, to, piece)
     sendMove(from, to, piece) // Send the move to the peer
+    currentPlayer.value = currentPlayer.value === Player.white ? Player.black : Player.white // Switch turns
+    sendTurn(currentPlayer.value)
+
   }
   // After making the move, check if the move puts the opponent's king in check
   const checkStatus = isCheck()
@@ -94,19 +109,9 @@ const movePiece = (from: vector2, to: vector2, piece: Piece): boolean => {
     inCheck.value = null
   }
 
-  // Check for checkmate
-  if (isCheckmate()) {
-    console.log('Checkmate!')
-    gameFinished.value = true
-    inCheckMate.value = true
-  } else {
-    currentPlayer.value = currentPlayer.value === Player.white ? Player.black : Player.white // Switch turns
-    sendTurn(currentPlayer.value)
-  }
-
-
   return true
 }
+
 export const getValidMoves = (from: vector2, piece: Piece): vector2[] => {
   switch (piece.type) {
     case PieceType.PAWN:
@@ -251,8 +256,9 @@ const validateAllMovesForCheck = (player: Player): boolean => {
  * @returns array of possible move locations
  */
 const isValidPawnMoves = (current: vector2, type: Player): vector2[] => {
-  const direction = type === Player.black ? 1 : -1
-  const startRow = type === Player.white ? 6 : 1
+  console.log(inverted)
+  const direction = type === Player.black ? inverted.value? -1 : 1 : inverted.value? 1 : -1
+  const startRow = type === Player.white ? inverted.value? 1 : 6 : inverted.value? 6 : 1
   const availableMoves: vector2[] = []
   // immutable
   const boardState = BoardState.value

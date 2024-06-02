@@ -121,14 +121,14 @@ const executeMove = (from: vector2, to: vector2, piece: Piece) => {
   const { movePiece } = useMovePiece()
   console.log(from, to, piece)
   if(inverted) {
-    from.col = 7 - from.col
     from.row = 7 - from.row
-    to.col = 7 - to.col
     to.row = 7 - to.row
   }
   console.log(from, to, piece)
-  movePiece(from, to, piece)
+  movePiece(from, to, piece, true)
+
 }
+
 
 const changeTurn = (player: Player) => {
   currentPlayer.value = player
@@ -138,6 +138,7 @@ export const usePeerConnection = () => {
   return {
     startPeer,
     sendMove,
-    sendTurn
+    sendTurn,
+    isHost
   }
 }
