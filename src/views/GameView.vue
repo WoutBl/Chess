@@ -18,7 +18,7 @@
                         @dragstart="handleDragStart($event, row, col)"
                         @dragend="handleDragEnd()"
                         :cursor="currentPlayer === cell?.color ? 'grab' : 'not-allowed'"
-                        :draggable="currentPlayer == cell?.color"
+                        :drag="currentPlayer == cell?.color"
         />
       </div>
     </div>

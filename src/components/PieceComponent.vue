@@ -1,6 +1,6 @@
 <template>
-  <div v-if="piece" class="piece">
-    <img :src="getPieceImage(piece)" :alt="piece.type" class="piece-image" draggable="false" />
+  <div v-if="piece" class="piece" draggable="false">
+    <img :src="getPieceImage(piece)" :alt="piece.type" class="piece-image" :draggable="drag" />
   </div>
 </template>
 
@@ -14,7 +14,8 @@ const props = defineProps({
     type: Object as PropType<Piece | null>,
     required: false,
   },
-  cursor: String
+  cursor: String,
+  drag: Boolean
 });
 
 const getPieceImage = (piece: Piece | null): string => {
