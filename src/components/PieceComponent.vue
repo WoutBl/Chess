@@ -1,14 +1,12 @@
 <template>
-  <div v-if="piece" class="piece" draggable="true">
+  <div v-if="piece" class="piece">
     <img :src="getPieceImage(piece)" :alt="piece.type" class="piece-image" draggable="false" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { type PropType, watch } from 'vue'
-import type { Piece, PieceType } from '@/hooks/BoardState'
-
-
+import type { Piece } from '@/hooks/BoardState'
+import { computed, type PropType } from 'vue'
 
 
 const props = defineProps({
@@ -16,6 +14,7 @@ const props = defineProps({
     type: Object as PropType<Piece | null>,
     required: false,
   },
+  cursor: String
 });
 
 const getPieceImage = (piece: Piece | null): string => {
@@ -38,11 +37,17 @@ const getPieceImage = (piece: Piece | null): string => {
 
   return pieceImages[`${piece.type}_${piece.color}`] || '';
 };
+
+
 </script>
 
 <style scoped>
 .movable {
   background-color: hotpink !important;
+}
+.piece {
+  user-select: none;
+  cursor: v-bind(cursor)
 }
 .piece-image {
   width: 100%;

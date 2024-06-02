@@ -16,6 +16,13 @@ export enum Player {
 const inCheck = ref<Player | null>(null)
 export const inCheckMate = ref<boolean>(false)
 
+function movePieceOnBoard(from: vector2, to: vector2, piece: Piece) {
+  BoardState.value[to.row][to.col] = piece
+  BoardState.value[from.row][from.col] = null // clear the old position
+}
+
+
+
 /**
  * move piece
  * @param from
@@ -41,8 +48,7 @@ const movePiece = (from: vector2, to: vector2, piece: Piece): boolean => {
     console.log('Invalid move')
     return false
   }
-  BoardState.value[to.row][to.col] = piece
-  BoardState.value[from.row][from.col] = null // clear the old position
+  movePieceOnBoard(from, to, piece)
   sendMove(from, to, piece) // Send the move to the peer
   // After making the move, check if the move puts the opponent's king in check
   const checkStatus = isCheck()
