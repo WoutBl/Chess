@@ -47,7 +47,7 @@
 
 <script setup lang="ts">
 import { AvailableMovesCoordinates, BoardState, currentPlayer, inverted, type Piece, hasMoved } from '@/hooks/BoardState'
-import { getValidMoves, inCheckMate, Player, useMovePiece, type vector2, cantMove } from '@/hooks/MovePiece'
+import { getValidMoves, inCheckMate, Player, useMovePiece, type vector2 } from '@/hooks/MovePiece'
 import { hostID } from '@/hooks/PeerConnection'
 import { ref, watch } from 'vue'
 import PieceComponent from '../components/PieceComponent.vue'
