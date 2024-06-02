@@ -1,7 +1,7 @@
-import { ref } from 'vue'
-import { gameFinished, type Piece } from '@/hooks/BoardState'
-import { BoardState, currentPlayer, PieceType } from '@/hooks/BoardState'
+import { BoardState, currentPlayer, gameFinished, hasMoved, inverted, type Piece, PieceType } from '@/hooks/BoardState'
 import { usePeerConnection } from '@/hooks/PeerConnection'
+import { hasAnyMoved } from '@/utils/move'
+import { ref } from 'vue'
 
 export type vector2 = {
   row: number
@@ -19,8 +19,39 @@ export const inCheckMate = ref<boolean>(false)
 function movePieceOnBoard(from: vector2, to: vector2, piece: Piece) {
   BoardState.value[to.row][to.col] = piece
   BoardState.value[from.row][from.col] = null // clear the old position
-}
 
+
+  const color = inverted.value ? 'white' : 'black'
+  const colorOpponent = inverted.value ? 'black' : 'white'
+  const hasMovedColor = hasMoved.value[color as 'black' | 'white']
+  const hasMovedColorOpponent = hasMoved.value[colorOpponent as 'black' | 'white']
+
+
+  if (piece.type == PieceType.ROOK) {
+    if (from.col == 0 && from.row == 0) {
+      hasMovedColor.rookLeft = true
+    }
+    if (from.col == 7 && from.row == 0) {
+      hasMovedColor.rookRight = true
+    }
+    if (from.col == 0 && from.row == 7) {
+      hasMovedColorOpponent.rookLeft = true
+    }
+    if (from.col == 7 && from.row == 7) {
+      hasMovedColorOpponent.rookRight = true
+    }
+  }
+
+  if (piece.type == PieceType.KING) {
+
+    if (from.row == 0) {
+      hasMovedColor.king = true
+    }
+    if (from.row == 7) {
+      hasMovedColorOpponent.king = true
+    }
+  }
+}
 
 
 /**
@@ -39,7 +70,7 @@ const movePiece = (from: vector2, to: vector2, piece: Piece): boolean => {
     return false
   }
   if (piece.color !== currentPlayer.value) {
-    console.log("It's not your turn")
+    console.log('It\'s not your turn')
     return false
   }
   const validMoves = getValidMoves(from, piece)
@@ -48,13 +79,16 @@ const movePiece = (from: vector2, to: vector2, piece: Piece): boolean => {
     console.log('Invalid move')
     return false
   }
-  movePieceOnBoard(from, to, piece)
-  sendMove(from, to, piece) // Send the move to the peer
+
+  if (!hasCastled(from, to, piece)) {
+    movePieceOnBoard(from, to, piece)
+    sendMove(from, to, piece) // Send the move to the peer
+  }
   // After making the move, check if the move puts the opponent's king in check
   const checkStatus = isCheck()
 
   if (checkStatus) {
-    console.log("Check!")
+    console.log('Check!')
     inCheck.value = currentPlayer.value === Player.white ? Player.black : Player.white
   } else {
     inCheck.value = null
@@ -62,14 +96,13 @@ const movePiece = (from: vector2, to: vector2, piece: Piece): boolean => {
 
   // Check for checkmate
   if (isCheckmate()) {
-    console.log("Checkmate!")
+    console.log('Checkmate!')
     gameFinished.value = true
     inCheckMate.value = true
   } else {
     currentPlayer.value = currentPlayer.value === Player.white ? Player.black : Player.white // Switch turns
     sendTurn(currentPlayer.value)
   }
-
 
 
   return true
@@ -94,122 +127,122 @@ export const getValidMoves = (from: vector2, piece: Piece): vector2[] => {
 }
 
 const isCheck = () => {
-  let isInCheck = false;
+  let isInCheck = false
 
   // Find the position of the opposing king
-  let kingPosition: vector2 | null = null;
+  let kingPosition: vector2 | null = null
   BoardState.value.forEach((row, rowIndex) => {
     row.forEach((cell, colIndex) => {
       if (cell != null && cell.type === PieceType.KING && cell.color !== currentPlayer.value) {
-        kingPosition = { row: rowIndex, col: colIndex };
+        kingPosition = { row: rowIndex, col: colIndex }
       }
-    });
-  });
+    })
+  })
 
   if (!kingPosition) {
-    console.log("King not found on the board.");
-    return false;
+    console.log('King not found on the board.')
+    return false
   }
 
   // Check if any of the current player's pieces can move to the opposing king's position
   BoardState.value.forEach((row, rowIndex) => {
     row.forEach((cell, colIndex) => {
       if (cell != null && cell.color === currentPlayer.value) {
-        const validMoves = getValidMoves({ row: rowIndex, col: colIndex }, cell);
+        const validMoves = getValidMoves({ row: rowIndex, col: colIndex }, cell)
         validMoves.forEach((move) => {
           if (move.row === kingPosition!.row && move.col === kingPosition!.col) {
-            isInCheck = true;
+            isInCheck = true
           }
-        });
+        })
       }
-    });
-  });
+    })
+  })
 
   if (isInCheck) {
-    inCheck.value = currentPlayer.value === Player.white ? Player.black : Player.white;
+    inCheck.value = currentPlayer.value === Player.white ? Player.black : Player.white
   }
 
-  return isInCheck;
-};
+  return isInCheck
+}
 
 const isCheckmate = (): boolean => {
-  const playerInCheck = inCheck.value;
+  const playerInCheck = inCheck.value
   let isInCheckMate = false
-  if (!playerInCheck) return false;
+  if (!playerInCheck) return false
 
-  const allMoves = getAllValidMoves(playerInCheck);
-  isInCheckMate = allMoves.every(move => doesMoveLeaveKingInCheck(move.from, move.to, move.piece));
+  const allMoves = getAllValidMoves(playerInCheck)
+  isInCheckMate = allMoves.every(move => doesMoveLeaveKingInCheck(move.from, move.to, move.piece))
   if (isInCheckMate) {
     inCheckMate.value = isInCheckMate
   }
   return inCheckMate.value
-};
+}
 
 const getAllValidMoves = (player: Player): Array<{ from: vector2, to: vector2, piece: Piece }> => {
-  const validMoves: Array<{ from: vector2, to: vector2, piece: Piece }> = [];
+  const validMoves: Array<{ from: vector2, to: vector2, piece: Piece }> = []
 
   BoardState.value.forEach((row, rowIndex) => {
     row.forEach((cell, colIndex) => {
       if (cell != null && cell.color === player) {
-        const from = { row: rowIndex, col: colIndex };
-        const moves = getValidMoves(from, cell);
+        const from = { row: rowIndex, col: colIndex }
+        const moves = getValidMoves(from, cell)
         moves.forEach((to) => {
-          validMoves.push({ from, to, piece: cell });
-        });
+          validMoves.push({ from, to, piece: cell })
+        })
       }
-    });
-  });
+    })
+  })
 
-  return validMoves;
-};
+  return validMoves
+}
 
 const isKingInCheck = (board: Piece[][], player: Player): boolean => {
-  let isInCheck = false;
+  let isInCheck = false
 
   // Find the position of the player's king
-  let kingPosition: vector2 | null = null;
+  let kingPosition: vector2 | null = null
   board.forEach((row, rowIndex) => {
     row.forEach((cell, colIndex) => {
       if (cell != null && cell.type === PieceType.KING && cell.color === player) {
-        kingPosition = { row: rowIndex, col: colIndex };
+        kingPosition = { row: rowIndex, col: colIndex }
       }
-    });
-  });
+    })
+  })
 
   if (!kingPosition) {
-    console.log("King not found on the board.");
-    return false;
+    console.log('King not found on the board.')
+    return false
   }
 
   // Check if any of the opponent's pieces can move to the player's king's position
   board.forEach((row, rowIndex) => {
     row.forEach((cell, colIndex) => {
       if (cell != null && cell.color !== player) {
-        const validMoves = getValidMoves({ row: rowIndex, col: colIndex }, cell);
+        const validMoves = getValidMoves({ row: rowIndex, col: colIndex }, cell)
         validMoves.forEach((move) => {
           if (move.row === kingPosition!.row && move.col === kingPosition!.col) {
-            isInCheck = true;
+            isInCheck = true
           }
-        });
+        })
       }
-    });
-  });
+    })
+  })
 
-  return isInCheck;
-};
+  return isInCheck
+}
 
 const doesMoveLeaveKingInCheck = (from: vector2, to: vector2, piece: Piece): boolean => {
-  const tempBoard = JSON.parse(JSON.stringify(BoardState.value)); // create a temporary board to simulate the move
-  tempBoard[to.row][to.col] = piece;
-  tempBoard[from.row][from.col] = null;
+  const tempBoard = JSON.parse(JSON.stringify(BoardState.value)) // create a temporary board to simulate the move
+  tempBoard[to.row][to.col] = piece
+  tempBoard[from.row][from.col] = null
 
-  return isKingInCheck(tempBoard, piece.color);
-};
+  return isKingInCheck(tempBoard, piece.color)
+}
 
 const validateAllMovesForCheck = (player: Player): boolean => {
-  const allMoves = getAllValidMoves(player);
-  return allMoves.some(move => !doesMoveLeaveKingInCheck(move.from, move.to, move.piece));
-};
+  const allMoves = getAllValidMoves(player)
+  return allMoves.some(move => !doesMoveLeaveKingInCheck(move.from, move.to, move.piece))
+}
 
 /**
  * Get all possible moves for pawn
@@ -224,7 +257,7 @@ const isValidPawnMoves = (current: vector2, type: Player): vector2[] => {
   // immutable
   const boardState = BoardState.value
 
-  // Check if the current position is within the bounds of the board (kinda redudant but just in case)
+  // Check if the current position is within the bounds of the board (kinda redundant but just in case)
   if (
     current.row < 0 ||
     current.row >= boardState.length ||
@@ -415,6 +448,10 @@ const isValidRookMoves = (current: vector2, type: Player): vector2[] => {
       col += direction.col
     }
   }
+  const res = canCastle(current, type)
+  if (res) {
+    availableMoves.push(res)
+  }
 
   return availableMoves
 }
@@ -521,6 +558,85 @@ const isValidQueenMoves = (current: vector2, type: Player): vector2[] => {
 
   return availableMoves
 }
+/**
+ *
+ * @param from Rook (left or right) NOT king
+ */
+const canCastle = (from: vector2, type: Player) => {
+  if (hasAnyMoved(hasMoved.value)) {
+    console.log('cant castle')
+    return null
+  }
+
+  // if rook = left
+  if (from.col === 0) {
+    // boardstate range col king - rook (left or right) is empty
+    for (let i = from.col + 1; i < 4; i++) {
+      if (BoardState.value[from.row][i] != null) {
+        console.log('cant castle')
+        return false
+      }
+    }
+  }
+  if (from.col === 7) {
+    for (let i = from.col - 1; i > 4; i--) {
+      if (BoardState.value[from.row][i] != null) {
+        console.log('cant castle')
+        return false
+      }
+    }
+  }
+
+
+  // check if king is in check
+  const checkStatus = inCheck.value
+  if (checkStatus) {
+    // Check for check for right player
+    if (checkStatus === type) {
+      console.log('cant castle')
+      return false
+    }
+  }
+
+  const toVector: vector2 = {
+    row: from.row,
+    // depends on from (rook / king)
+    col: 4
+  }
+  return toVector
+
+}
+
+
+function hasCastled(from: vector2, to: vector2, piece: Piece): boolean {
+  const { sendMove, sendTurn } = usePeerConnection()
+  if (piece.type !== PieceType.ROOK) return false
+
+
+  if (canCastle(from, piece.color)) {
+    const rook = BoardState.value[from.row][from.col]
+    const king = BoardState.value[to.row][to.col]
+    BoardState.value[from.row][from.col] = null
+    BoardState.value[to.row][to.col] = null
+    // BoardState.value[to.row][to.col -1] = king
+    const direction = from.col === 0 ? -1 : 1
+    BoardState.value[to.row][to.col + direction] = rook
+    BoardState.value[to.row][to.col + direction * 2] = king
+
+
+    currentPlayer.value = currentPlayer.value === Player.white ? Player.black : Player.white // Switch turns
+    sendTurn(currentPlayer.value)
+    sendMove({ row: to.row, col: to.col }, { row: to.row, col: to.col + direction * 2 }, {
+      color: piece.color,
+      type: PieceType.KING
+    }) // Send the king move to the peer
+    sendMove({ row: from.row, col: from.col }, { row: to.row, col: to.col + direction }, piece) // Send the rook to the peer
+    return true
+
+  }
+  return false
+}
+
 
 export const useMovePiece = () => {
   return {

@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { Player, type vector2 } from '@/hooks/MovePiece'
+import { ref } from 'vue'
 
 export type Piece = {
   type: PieceType
@@ -57,3 +57,26 @@ export const inverted = ref<boolean>(false)
 
 // export const AvailableMoves
 export const AvailableMovesCoordinates = ref<vector2[]>()
+
+
+export interface hasMovedType {
+  [color: string]: {
+    rookLeft: boolean
+    rookRight: boolean
+    king: boolean
+  }
+
+}
+
+export const hasMoved = ref<hasMovedType>({
+  black: {
+    rookLeft: false,
+    rookRight: false,
+    king: false
+  },
+  white: {
+    rookLeft: false,
+    rookRight: false,
+    king: false
+  }
+})

@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { AvailableMovesCoordinates, BoardState, currentPlayer, inverted, type Piece } from '@/hooks/BoardState'
+import { AvailableMovesCoordinates, BoardState, currentPlayer, inverted, type Piece, hasMoved } from '@/hooks/BoardState'
 import { getValidMoves, inCheckMate, Player, useMovePiece, type vector2 } from '@/hooks/MovePiece'
 import { hostID } from '@/hooks/PeerConnection'
 import { ref, watch } from 'vue'
@@ -82,7 +82,9 @@ function handleDragEnd() {
   movingPiece.value = null
 }
 
-
+watch(hasMoved.value, () =>{
+  console.log(hasMoved)
+}, {deep: true})
 
 function handleDrop(event: DragEvent, row: number, col: number) {
   const data = event.dataTransfer?.getData('text/plain')
@@ -96,9 +98,7 @@ function handleDrop(event: DragEvent, row: number, col: number) {
   const to: vector2 = { row: row, col: col }
   const piece: Piece | null = BoardState.value[sourceRow][sourceCol]
   if (!piece) return console.error('no piece found')
-  const result = movePiece(from, to, piece)
-
-
+  movePiece(from, to, piece)
 }
 
 
