@@ -34,17 +34,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import PieceComponent from '../components/PieceComponent.vue'
-import { AvailableMovesCoordinates, BoardState, currentPlayer, type Piece, inverted } from '@/hooks/BoardState'
+import { AvailableMovesCoordinates, BoardState, currentPlayer, inverted, type Piece } from '@/hooks/BoardState'
 import { getValidMoves, inCheckMate, useMovePiece, type vector2 } from '@/hooks/MovePiece'
 import { hostID } from '@/hooks/PeerConnection'
+import { ref, watch } from 'vue'
+import PieceComponent from '../components/PieceComponent.vue'
 
 const { movePiece } = useMovePiece()
 const fromPiece = ref<{ fromPiece: Piece | null; Location: vector2 } | null>(null)
 
 
 const handleCellClick = (row: number, col: number) => {
+  if(fromPiece.value?.Location?.col === col && fromPiece.value.Location.row == row) {
+    AvailableMovesCoordinates.value = [];
+    fromPiece.value = null
+    return
+  }
+
   if (fromPiece.value?.fromPiece) {
     const to: vector2 = { row, col }
     const result = movePiece(fromPiece.value.Location, to, fromPiece.value.fromPiece)
@@ -59,12 +65,9 @@ const handleCellClick = (row: number, col: number) => {
       if (fromPiece.value?.fromPiece?.color !== currentPlayer.value ) {
         AvailableMovesCoordinates.value = []
         fromPiece.value = null
-
         return
       }
-      const validMoves = getValidMoves(fromPiece.value.Location, fromPiece.value.fromPiece)
-      AvailableMovesCoordinates.value = validMoves
-      // show available tiles
+      AvailableMovesCoordinates.value = getValidMoves(fromPiece.value.Location, fromPiece.value.fromPiece)
     } else {
       fromPiece.value = null
       AvailableMovesCoordinates.value = []
