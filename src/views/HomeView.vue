@@ -14,7 +14,7 @@
     <div class="buttonContainer" v-if="state === 'online'">
       <button class="button" @click="startHost">Start Host</button>
       <button class="button" @click="joinHost">Join Host</button>
-      <input v-model="hostId" placeholder="Enter Host ID to Join" />
+      <input v-model="hostId" placeholder="Enter Host ID to Join"  class="input"/>
     </div>
   </div>
 </template>
@@ -112,5 +112,11 @@ const joinHost = () => {
   flex-direction: column;
   gap: 10px;
   width: 50%;
+}
+
+.input {
+  padding-inline: 1rem;
+  padding-block: .5rem;
+  border-radius: 4px;
 }
 </style>
