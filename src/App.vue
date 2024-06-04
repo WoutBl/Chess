@@ -64,7 +64,7 @@ const copy = () => {
       
       <AlertDialog>
         <AlertDialogTrigger as-child>
-          <Button v-if="route.currentRoute.value.fullPath == '/game' && hostID" class="ml-5" @click="showPopup" variant="outline" size="icon">
+          <Button v-if="route.currentRoute.value.fullPath == '/game' && hostID" class="ml-5" variant="outline" size="icon">
             <Info class="w-4 h-4" />
           </Button>
         </AlertDialogTrigger>
