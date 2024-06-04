@@ -3,19 +3,23 @@
     <div class="header">
       Chess
     </div>
-    <div class="buttonContainer" v-if="state === 'players'">
-      <button @click="onClickState('1player')" class="button">1 player</button>
-      <button @click="onClickState('2players')" class="button">2 players</button>
+    <div class="buttonContainer" v-if="props.state === 'players'">
+      <button @click="changeState('1player')" class="button">1 player</button>
+      <button @click="changeState('2players')" class="button">2 players</button>
     </div>
-    <div class="buttonContainer" v-if="state === '2players'">
+    <div class="buttonContainer" v-if="props.state === '2players'">
       <RouterLink to="/game" class="button">Local</RouterLink>
-      <button @click="onClickState('online')" class="button">Online</button>
+      <button @click="changeState('online')" class="button">Online</button>
     </div>
-    <div class="buttonContainer" v-if="state === 'online'">
+    <div class="buttonContainer" v-if="props.state === 'online'">
       <button class="button" @click="startHost">Start Host</button>
-      <button class="button" @click="joinHost">Join Host</button>
-      <input v-model="hostId" placeholder="Enter Host ID to Join"  class="input"/>
+      <button class="button" @click="changeState('join')">Join Host</button>
     </div>
+    <div v-if="props.state === 'join'" className="flex w-full max-w-sm items-center space-x-2">
+      <Input v-model="hostId" type="text" placeholder="Enter Host ID to Join" />
+      <Button @click="joinHost" type="submit">Join</Button>
+    </div>
+    
   </div>
 </template>
 
@@ -23,14 +27,24 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { usePeerConnection } from '@/hooks/PeerConnection';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { defineProps, defineEmits } from 'vue';
 
-const state = ref('players');
+const props = defineProps({
+  onClickState: Function,
+  state: String
+});
+
+const emit = defineEmits(['changeState']);
+
+
 const router = useRouter();
 const { startPeer } = usePeerConnection();
 const hostId = ref<string>('');
 
-const onClickState = (nextState: string) => {
-  state.value = nextState;
+const changeState = (nextState: string) => {
+  emit('changeState', nextState);
 };
 
 const startHost = () => {
@@ -43,6 +57,7 @@ const joinHost = () => {
   localStorage.setItem("hostId", hostId.value);
   router.push("/game");
 };
+
 </script>
 
 <style scoped>

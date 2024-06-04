@@ -1,7 +1,6 @@
 <template>
-  <div class="board" v-if="!inCheckMate">
-
-
+  
+  <div class="h-screen aspect-square mx-auto" v-if="!inCheckMate">
     <div v-for="(rows, row) in BoardState" :key="row" class="row">
       <div v-for="(cell, col) in rows" :key="col" class="cell"
            @click="handleCellClick(row, col)"
@@ -26,9 +25,7 @@
       <div class="turn-indicator">
         Current Turn: {{ currentPlayer === 'white' ? 'White' : 'Black' }}
       </div>
-      <div class="turn-indicator" v-if="hostID">
-        hostID:<br> {{ hostID }}
-      </div>
+      
 
     </div>
 
@@ -51,6 +48,8 @@ import { getValidMoves, inCheckMate, Player, useMovePiece, type vector2 } from '
 import { hostID } from '@/hooks/PeerConnection'
 import { ref, watch } from 'vue'
 import PieceComponent from '../components/PieceComponent.vue'
+import { Button } from '@/components/ui/button'
+import { Info } from 'lucide-vue-next'
 
 const { movePiece } = useMovePiece()
 const fromPiece = ref<{ fromPiece: Piece | null; Location: vector2 } | null>(null)
