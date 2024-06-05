@@ -7,7 +7,7 @@ import { useMovePiece } from './MovePiece'
 const peer = ref<Peer | null>(null)
 export const conn = ref<any>(null)
 export const isHost = ref<boolean>(false)
-export const hostID = ref<string | null>(null)
+export const hostID = ref<string | undefined>(undefined)
 export const loading = ref<boolean>(true)
 export const peerError = ref<boolean>(false)
 export const errorMessage = ref<string>('')

@@ -61,7 +61,7 @@ const backClick = () => {
 const copy = () => {
   console.log(hostID.value)
   if (hostID.value !== null) {
-    navigator.clipboard.writeText(hostID.value)
+    navigator.clipboard.writeText(hostID.value ?? '')
     copyEffect.value = true // Trigger the effect
     showCopiedPopup.value = true // Show the copied popup
     setTimeout(() => {
@@ -98,7 +98,7 @@ const copy = () => {
             <AlertDialogDescription>
               Use this ID to join on a different computer <br />
               <div class="relative w-full max-w-sm items-center">
-              // @ts-ignore
+                <!-- @ts-ignore -->
                 <Input :readonly="true" id="Copy" type="text" :modelValue="hostID" class="pl-10" />
                 <span class="absolute start-0 inset-y-0 flex items-center justify-center px-2">
                   <Copy

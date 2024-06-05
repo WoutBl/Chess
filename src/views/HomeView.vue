@@ -67,8 +67,9 @@ const joinHost = () => {
       //
     }, 800)
   } catch (error) {
-    // @ts-ignore
+    
     console.error(error)
+    // @ts-ignore
     errorMessage.value = error.message // Set error message
   }
 }
