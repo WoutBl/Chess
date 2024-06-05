@@ -75,10 +75,7 @@ const movePiece = (
   // Restriction based on host and piece color for local moves
   console.log(gameType.value)
   if (gameType.value === 'remote') {
-    if (
-      (!comesFromRemote && isHost.value && piece.color === Player.black) ||
-      (!comesFromRemote && !isHost.value && piece.color === Player.white)
-    ) {
+    if (!comesFromRemote && (isHost.value && piece.color === Player.black) || !comesFromRemote && (!isHost.value && piece.color === Player.white)) {
       console.log('You are not allowed to move this piece')
       return false
     }

@@ -61,13 +61,6 @@ const createPeer = (connectionId: string | null = null) => {
 const startHostConnection = () => {
   console.log('Waiting for connection...')
   peer.value?.on('connection', (connection) => {
-    if (conn.value) {
-      console.log('Already connected to a player. Rejecting new connection...')
-      connection.close()
-      errorMessage.value = 'A player is already connected to the host'
-      return
-    }
-
     console.log('connected')
     inverted.value = false
     conn.value = connection
@@ -85,15 +78,6 @@ const startReceiverConnection = (hostId: string | null) => {
 
   console.log('Connecting to host:', hostId)
   conn.value = peer.value?.connect(hostId)
-
-  if (conn.value && conn.value.open) {
-    console.log('Connection already exists. Rejecting new connection...')
-    conn.value.close()
-    peerError.value = true
-    errorMessage.value = 'A player is already connected to the host'
-    return
-  }
-
   conn.value?.on('open', () => {
     console.log('Connected to host')
     inverted.value = true
@@ -144,7 +128,7 @@ const closeConnection = () => {
 }
 
 const sendMove = (from: vector2, to: vector2, piece: Piece) => {
-  console.log('sendMove')
+  console.log("sendMove")
   if (conn.value && conn.value.open) {
     conn.value.send({ type: 'move', payload: { from, to, piece } })
   }
@@ -160,12 +144,13 @@ const sendTurn = (player: Player) => {
 const executeMove = (from: vector2, to: vector2, piece: Piece) => {
   const { movePiece } = useMovePiece()
   console.log(from, to, piece)
-  if (inverted.value) {
+  if(inverted) {
     from.row = 7 - from.row
     to.row = 7 - to.row
   }
   console.log(from, to, piece)
   movePiece(from, to, piece, true)
+
 }
 
 const changeTurn = (player: Player) => {
