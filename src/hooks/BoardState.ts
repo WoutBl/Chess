@@ -54,10 +54,10 @@ export const BoardState = ref<Board>(initialBoard)
 export const currentPlayer = ref<Player>(Player.white)
 export const gameFinished = ref<boolean>(false)
 export const inverted = ref<boolean>(false)
+export const gameType = ref<String>('')
 
 // export const AvailableMoves
 export const AvailableMovesCoordinates = ref<vector2[]>()
-
 
 export interface hasMovedType {
   [color: string]: {
@@ -65,7 +65,6 @@ export interface hasMovedType {
     rookRight: boolean
     king: boolean
   }
-
 }
 
 export const hasMoved = ref<hasMovedType>({
@@ -80,3 +79,23 @@ export const hasMoved = ref<hasMovedType>({
     king: false
   }
 })
+
+export const resetBoard = () => {
+  console.log('resetBoard')
+  BoardState.value = JSON.parse(JSON.stringify(initialBoard))
+  currentPlayer.value = Player.white
+  gameFinished.value = false
+  AvailableMovesCoordinates.value = []
+  hasMoved.value = {
+    black: {
+      rookLeft: false,
+      rookRight: false,
+      king: false
+    },
+    white: {
+      rookLeft: false,
+      rookRight: false,
+      king: false
+    }
+  }
+}

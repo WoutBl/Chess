@@ -1,4 +1,13 @@
-import { BoardState, currentPlayer, gameFinished, hasMoved, inverted, type Piece, PieceType } from '@/hooks/BoardState'
+import {
+  BoardState,
+  currentPlayer,
+  gameFinished,
+  hasMoved,
+  inverted,
+  type Piece,
+  PieceType,
+  gameType
+} from '@/hooks/BoardState'
 import { usePeerConnection } from '@/hooks/PeerConnection'
 import { hasAnyMoved } from '@/utils/move'
 import { ref } from 'vue'
@@ -20,12 +29,10 @@ function movePieceOnBoard(from: vector2, to: vector2, piece: Piece) {
   BoardState.value[to.row][to.col] = piece
   BoardState.value[from.row][from.col] = null // clear the old position
 
-
   const color = inverted.value ? 'white' : 'black'
   const colorOpponent = inverted.value ? 'black' : 'white'
   const hasMovedColor = hasMoved.value[color as 'black' | 'white']
   const hasMovedColorOpponent = hasMoved.value[colorOpponent as 'black' | 'white']
-
 
   if (piece.type == PieceType.ROOK) {
     if (from.col == 0 && from.row == 0) {
@@ -43,7 +50,6 @@ function movePieceOnBoard(from: vector2, to: vector2, piece: Piece) {
   }
 
   if (piece.type == PieceType.KING) {
-
     if (from.row == 0) {
       hasMovedColor.king = true
     }
@@ -53,19 +59,29 @@ function movePieceOnBoard(from: vector2, to: vector2, piece: Piece) {
   }
 }
 
-
 /**
  * move piece
  * @param from
  * @param to
  * @param piece
  */
-const movePiece = (from: vector2, to: vector2, piece: Piece, comesFromRemote: boolean = false): boolean => {
+const movePiece = (
+  from: vector2,
+  to: vector2,
+  piece: Piece,
+  comesFromRemote: boolean = false
+): boolean => {
   const { sendMove, sendTurn, isHost } = usePeerConnection()
   // Restriction based on host and piece color for local moves
-  if (!comesFromRemote && (isHost.value && piece.color === Player.black) || !comesFromRemote && (!isHost.value && piece.color === Player.white)) {
-    console.log('You are not allowed to move this piece')
-    return false
+  console.log(gameType.value)
+  if (gameType.value === 'remote') {
+    if (
+      (!comesFromRemote && isHost.value && piece.color === Player.black) ||
+      (!comesFromRemote && !isHost.value && piece.color === Player.white)
+    ) {
+      console.log('You are not allowed to move this piece')
+      return false
+    }
   }
 
   if (gameFinished.value) {
@@ -75,7 +91,7 @@ const movePiece = (from: vector2, to: vector2, piece: Piece, comesFromRemote: bo
     return false
   }
   if (piece.color !== currentPlayer.value) {
-    console.log('It\'s not your turn')
+    console.log("It's not your turn")
     return false
   }
   const validMoves = getValidMoves(from, piece)
@@ -97,7 +113,6 @@ const movePiece = (from: vector2, to: vector2, piece: Piece, comesFromRemote: bo
     sendMove(from, to, piece) // Send the move to the peer
     currentPlayer.value = currentPlayer.value === Player.white ? Player.black : Player.white // Switch turns
     sendTurn(currentPlayer.value)
-
   }
   // After making the move, check if the move puts the opponent's king in check
   const checkStatus = isCheck()
@@ -176,15 +191,15 @@ const isCheckmate = (): boolean => {
   if (!playerInCheck) return false
 
   const allMoves = getAllValidMoves(playerInCheck)
-  isInCheckMate = allMoves.every(move => doesMoveLeaveKingInCheck(move.from, move.to, move.piece))
+  isInCheckMate = allMoves.every((move) => doesMoveLeaveKingInCheck(move.from, move.to, move.piece))
   if (isInCheckMate) {
     inCheckMate.value = isInCheckMate
   }
   return inCheckMate.value
 }
 
-const getAllValidMoves = (player: Player): Array<{ from: vector2, to: vector2, piece: Piece }> => {
-  const validMoves: Array<{ from: vector2, to: vector2, piece: Piece }> = []
+const getAllValidMoves = (player: Player): Array<{ from: vector2; to: vector2; piece: Piece }> => {
+  const validMoves: Array<{ from: vector2; to: vector2; piece: Piece }> = []
 
   BoardState.value.forEach((row, rowIndex) => {
     row.forEach((cell, colIndex) => {
@@ -246,7 +261,7 @@ const doesMoveLeaveKingInCheck = (from: vector2, to: vector2, piece: Piece): boo
 
 const validateAllMovesForCheck = (player: Player): boolean => {
   const allMoves = getAllValidMoves(player)
-  return allMoves.some(move => !doesMoveLeaveKingInCheck(move.from, move.to, move.piece))
+  return allMoves.some((move) => !doesMoveLeaveKingInCheck(move.from, move.to, move.piece))
 }
 
 /**
@@ -257,8 +272,8 @@ const validateAllMovesForCheck = (player: Player): boolean => {
  */
 const isValidPawnMoves = (current: vector2, type: Player): vector2[] => {
   console.log(inverted)
-  const direction = type === Player.black ? inverted.value? -1 : 1 : inverted.value? 1 : -1
-  const startRow = type === Player.white ? inverted.value? 1 : 6 : inverted.value? 6 : 1
+  const direction = type === Player.black ? (inverted.value ? -1 : 1) : inverted.value ? 1 : -1
+  const startRow = type === Player.white ? (inverted.value ? 1 : 6) : inverted.value ? 6 : 1
   const availableMoves: vector2[] = []
   // immutable
   const boardState = BoardState.value
@@ -593,7 +608,6 @@ const canCastle = (from: vector2, type: Player) => {
     }
   }
 
-
   // check if king is in check
   const checkStatus = inCheck.value
   if (checkStatus) {
@@ -610,14 +624,11 @@ const canCastle = (from: vector2, type: Player) => {
     col: 4
   }
   return toVector
-
 }
-
 
 function hasCastled(from: vector2, to: vector2, piece: Piece): boolean {
   const { sendMove, sendTurn } = usePeerConnection()
   if (piece.type !== PieceType.ROOK) return false
-
 
   if (canCastle(from, piece.color)) {
     const rook = BoardState.value[from.row][from.col]
@@ -629,20 +640,21 @@ function hasCastled(from: vector2, to: vector2, piece: Piece): boolean {
     BoardState.value[to.row][to.col + direction] = rook
     BoardState.value[to.row][to.col + direction * 2] = king
 
-
     currentPlayer.value = currentPlayer.value === Player.white ? Player.black : Player.white // Switch turns
     sendTurn(currentPlayer.value)
-    sendMove({ row: to.row, col: to.col }, { row: to.row, col: to.col + direction * 2 }, {
-      color: piece.color,
-      type: PieceType.KING
-    }) // Send the king move to the peer
+    sendMove(
+      { row: to.row, col: to.col },
+      { row: to.row, col: to.col + direction * 2 },
+      {
+        color: piece.color,
+        type: PieceType.KING
+      }
+    ) // Send the king move to the peer
     sendMove({ row: from.row, col: from.col }, { row: to.row, col: to.col + direction }, piece) // Send the rook to the peer
     return true
-
   }
   return false
 }
-
 
 export const useMovePiece = () => {
   return {

@@ -1,65 +1,102 @@
 <template>
-  
-  <div class="h-screen aspect-square mx-auto" v-if="!inCheckMate">
-    <div v-for="(rows, row) in BoardState" :key="row" class="row">
-      <div v-for="(cell, col) in rows" :key="col" class="cell"
-           @click="handleCellClick(row, col)"
-           @drop="handleDrop($event, row, col)"
-           @dragover.prevent
-           :class="{
+  <div
+    v-if="loading && gameType === 'remote'"
+    class="w-screen h-screen flex flex-col justify-center items-center"
+  >
+    <div class="loader"></div>
+    <p class="text-2xl mt-5">connecting to opponent</p>
+    <p class="text-xl mt-5 flex">
+      Click the <Info class="mx-5" /> button to get the ID so your opponent can connect
+    </p>
+  </div>
+  <div v-else>
+    <div class="h-screen aspect-square mx-auto" v-if="!inCheckMate">
+      <div v-for="(rows, row) in BoardState" :key="row" class="row">
+        <div
+          v-for="(cell, col) in rows"
+          :key="col"
+          class="cell"
+          @click="handleCellClick(row, col)"
+          @drop="handleDrop($event, row, col)"
+          @dragover.prevent
+          :class="{
             movable: isAvailableMove({
               row: row,
               col: col
             })
-      }"
-      >
-        <PieceComponent class="piece" :piece="cell"
-                        @dragstart="handleDragStart($event, row, col)"
-                        @dragend="handleDragEnd()"
-                        :cursor="currentPlayer === cell?.color ? 'grab' : 'not-allowed'"
-                        :drag="currentPlayer == cell?.color"
-        />
+          }"
+        >
+          <PieceComponent
+            class="piece"
+            :piece="cell"
+            @dragstart="handleDragStart($event, row, col)"
+            @dragend="handleDragEnd()"
+            :cursor="currentPlayer === cell?.color ? 'grab' : 'not-allowed'"
+            :drag="currentPlayer == cell?.color"
+          />
+        </div>
+      </div>
+      <div class="extraInfo">
+        <div class="turn-indicator">
+          Current Turn: {{ currentPlayer === 'white' ? 'White' : 'Black' }}
+        </div>
       </div>
     </div>
-    <div class="extraInfo">
-      <div class="turn-indicator">
-        Current Turn: {{ currentPlayer === 'white' ? 'White' : 'Black' }}
-      </div>
-      
-
+    <div v-else>
+      <audio
+        autoplay
+        src="https://cdn.pixabay.com/download/audio/2024/03/26/audio_9bc9244969.mp3?filename=crowd-cheering-198411.mp3"
+      />
+      You Win
+      <img
+        src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMnRxZXpvb25vZDB4ZDIwbHkyYW5tdzVuamt6cjVyMmc5anc4enhsOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Dg4TxjYikCpiGd7tYs/giphy.gif"
+        alt="pedro"
+      />
+      <RouterLink to="/" class="button">Back to home</RouterLink>
     </div>
-
   </div>
-  <div v-else>
-    <audio autoplay
-           src="https://cdn.pixabay.com/download/audio/2024/03/26/audio_9bc9244969.mp3?filename=crowd-cheering-198411.mp3" />
-    You Win
-    <img
-      src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMnRxZXpvb25vZDB4ZDIwbHkyYW5tdzVuamt6cjVyMmc5anc4enhsOCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Dg4TxjYikCpiGd7tYs/giphy.gif"
-      alt="pedro" />
-    <RouterLink to="/" class="button">Back to home</RouterLink>
-  </div>
-
 </template>
 
 <script setup lang="ts">
-import { AvailableMovesCoordinates, BoardState, currentPlayer, inverted, type Piece, hasMoved } from '@/hooks/BoardState'
+import {
+  AvailableMovesCoordinates,
+  BoardState,
+  currentPlayer,
+  inverted,
+  type Piece,
+  hasMoved,
+  resetBoard,
+  gameType
+} from '@/hooks/BoardState'
 import { getValidMoves, inCheckMate, Player, useMovePiece, type vector2 } from '@/hooks/MovePiece'
-import { hostID } from '@/hooks/PeerConnection'
-import { ref, watch } from 'vue'
+import { hostID, loading } from '@/hooks/PeerConnection'
+import { onMounted, ref, watch } from 'vue'
 import PieceComponent from '../components/PieceComponent.vue'
 import { Button } from '@/components/ui/button'
 import { Info } from 'lucide-vue-next'
 
+const props = defineProps({
+  onClickState: Function,
+  state: String
+})
+
 const { movePiece } = useMovePiece()
 const fromPiece = ref<{ fromPiece: Piece | null; Location: vector2 } | null>(null)
-
-
 
 function cancelMove(): void {
   AvailableMovesCoordinates.value = []
   fromPiece.value = null
 }
+
+watch(
+  () => loading.value,
+  (newVal) => {
+    if (!newVal) {
+      resetBoard()
+    }
+  },
+  { immediate: true, deep: true }
+)
 
 const movingPiece = ref<vector2 | null>(null)
 const draggingOverLocation = ref<vector2 | null>(null)
@@ -69,21 +106,30 @@ function handleDragStart(event: DragEvent, row: number, col: number) {
 
   const piece: Piece | null = BoardState.value[row][col]
   movingPiece.value = {
-    row, col
+    row,
+    col
   }
   if (!piece) return
-  AvailableMovesCoordinates.value = getValidMoves({
-    row, col
-  }, piece)
+  AvailableMovesCoordinates.value = getValidMoves(
+    {
+      row,
+      col
+    },
+    piece
+  )
 }
 
 function handleDragEnd() {
   movingPiece.value = null
 }
 
-watch(hasMoved.value, () =>{
-  console.log(hasMoved)
-}, {deep: true})
+watch(
+  hasMoved.value,
+  () => {
+    console.log(hasMoved)
+  },
+  { deep: true }
+)
 
 function handleDrop(event: DragEvent, row: number, col: number) {
   const data = event.dataTransfer?.getData('text/plain')
@@ -99,7 +145,6 @@ function handleDrop(event: DragEvent, row: number, col: number) {
   if (!piece) return console.error('no piece found')
   movePiece(from, to, piece)
 }
-
 
 const handleCellClick = (row: number, col: number) => {
   if (fromPiece.value?.Location?.col === col && fromPiece.value.Location.row == row) {
@@ -118,10 +163,11 @@ const handleCellClick = (row: number, col: number) => {
       }
 
       if (fromPiece.value?.fromPiece?.color !== currentPlayer.value) return cancelMove()
-      AvailableMovesCoordinates.value = getValidMoves(fromPiece.value.Location, fromPiece.value.fromPiece)
+      AvailableMovesCoordinates.value = getValidMoves(
+        fromPiece.value.Location,
+        fromPiece.value.fromPiece
+      )
     } else return cancelMove()
-
-
   } else {
     // no selected piece - select piece
     fromPiece.value = {
@@ -132,7 +178,10 @@ const handleCellClick = (row: number, col: number) => {
     if (fromPiece.value?.fromPiece?.color !== currentPlayer.value) {
       return
     }
-    AvailableMovesCoordinates.value = getValidMoves(fromPiece.value.Location, fromPiece.value.fromPiece!)
+    AvailableMovesCoordinates.value = getValidMoves(
+      fromPiece.value.Location,
+      fromPiece.value.fromPiece!
+    )
   }
 }
 
@@ -145,21 +194,40 @@ const isAvailableMove = (coords: vector2): boolean => {
   })
 
   return hasFoundRow
-
-
 }
 
-watch(inverted, () => {
-  if (inverted) {
-    BoardState.value.reverse()
-  }
-})
-
-
+watch(
+  inverted,
+  (newVal) => {
+    if (newVal) {
+      BoardState.value.reverse()
+    }
+  },
+  { immediate: true, deep: true }
+)
 </script>
 
 <style scoped>
-.row, .cell {
+.loader {
+  width: 50px;
+  padding: 8px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #25b09b;
+  --_m: conic-gradient(#0000 10%, #000), linear-gradient(#000 0 0) content-box;
+  -webkit-mask: var(--_m);
+  mask: var(--_m);
+  -webkit-mask-composite: source-out;
+  mask-composite: subtract;
+  animation: l3 1s infinite linear;
+}
+@keyframes l3 {
+  to {
+    transform: rotate(1turn);
+  }
+}
+.row,
+.cell {
   user-select: none;
 }
 
@@ -174,20 +242,37 @@ watch(inverted, () => {
 }
 
 .button {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border: 0;
-  border-radius: .5rem;
+  border-radius: 0.5rem;
   box-sizing: border-box;
   color: #111827;
-  font-family: "Inter var", ui-sans-serif, system-ui, -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  font-size: .875rem;
+  font-family:
+    'Inter var',
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    system-ui,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    'Noto Sans',
+    sans-serif,
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Segoe UI Symbol',
+    'Noto Color Emoji';
+  font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.25rem;
-  padding: .75rem 1rem;
+  padding: 0.75rem 1rem;
   text-align: center;
-  text-decoration: none #D1D5DB solid;
+  text-decoration: none #d1d5db solid;
   text-decoration-thickness: auto;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
@@ -274,6 +359,4 @@ watch(inverted, () => {
   font-size: 24px;
   text-align: center;
 }
-
-
 </style>
