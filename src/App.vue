@@ -98,6 +98,7 @@ const copy = () => {
             <AlertDialogDescription>
               Use this ID to join on a different computer <br />
               <div class="relative w-full max-w-sm items-center">
+              // @ts-ignore
                 <Input :readonly="true" id="Copy" type="text" :modelValue="hostID" class="pl-10" />
                 <span class="absolute start-0 inset-y-0 flex items-center justify-center px-2">
                   <Copy

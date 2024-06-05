@@ -33,6 +33,7 @@ const startHost = async () => {
     router.push('/game')
   } catch (error) {
     console.error(error)
+    // @ts-ignore
     errorMessage.value = 'Error starting host: ' + error.message
   }
 }
@@ -66,6 +67,7 @@ const joinHost = () => {
       //
     }, 800)
   } catch (error) {
+    // @ts-ignore
     console.error(error)
     errorMessage.value = error.message // Set error message
   }
