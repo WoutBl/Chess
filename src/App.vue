@@ -32,6 +32,9 @@ const showCopiedPopup = ref(false) // New reactive state for showing the copied 
 
 const onClickState = (nextState: string) => {
   state.value = nextState
+  if(nextState == 'local') {
+    route.push('/game')
+  }
 }
 const mode = useColorMode()
 
@@ -97,7 +100,7 @@ const copy = () => {
             <AlertDialogTitle>How to let another player join your session</AlertDialogTitle>
             <AlertDialogDescription>
               Use this ID to join on a different computer <br />
-              <div class="relative w-full max-w-sm items-center">
+              <div class="relative w-full mx-auto mt-5 lg:mx-0  max-w-sm items-center">
                 <!-- @ts-ignore -->
                 <Input :readonly="true" id="Copy" type="text" :modelValue="hostID" class="pl-10" />
                 <span class="absolute start-0 inset-y-0 flex items-center justify-center px-2">

@@ -82,17 +82,17 @@ onMounted(() => {
 <template>
   <div class="container">
     <div class="header">Chess</div>
-    <div class="buttonContainer" v-if="props.state === 'players'">
-      <button @click="changeState('1player')" class="button">1 player</button>
-      <button @click="changeState('2players')" class="button">2 players</button>
+    <div class="flex flex-col lg:flex-row w-3/4 lg:w-2/3 lg:h-1/2   justify-center items-center gap-12" v-if="props.state === 'players'">
+      <Button @click="changeState('1player')" class="flex w-full lg:text-3xl h-1/2 rounded-lg p-5">1 player</Button>
+      <Button @click="changeState('2players')" class="flex w-full lg:text-3xl h-1/2 rounded-lg p-5 ">2 players</Button>
     </div>
-    <div class="buttonContainer" v-if="props.state === '2players'">
-      <RouterLink to="/game" @click="changeState('local')" class="button">Local</RouterLink>
-      <button @click="changeState('online')" class="button">Online</button>
+    <div class="flex flex-col lg:flex-row w-3/4 lg:w-2/3 lg:h-1/2   justify-center items-center gap-12" v-if="props.state === '2players'">
+      <Button @click="changeState('local')" class="flex w-full lg:text-3xl h-1/2 rounded-lg p-5 ">Local</Button>
+      <Button @click="changeState('online')" class="flex w-full lg:text-3xl h-1/2 rounded-lg p-5">Online</Button>
     </div>
-    <div class="buttonContainer" v-if="props.state === 'online'">
-      <button class="button" @click="startHost">Start Host</button>
-      <button class="button" @click="changeState('join')">Join Host</button>
+    <div class="flex flex-col lg:flex-row w-3/4 lg:w-2/3 lg:h-1/2   justify-center items-center gap-12" v-if="props.state === 'online'">
+      <Button class="flex w-full lg:text-3xl h-1/2 rounded-lg p-5" @click="startHost">Start Host</Button>
+      <Button class="flex w-full lg:text-3xl h-1/2 rounded-lg p-5" @click="changeState('join')">Join Host</Button>
     </div>
     <div v-if="props.state === 'join'" class="flex w-full max-w-sm items-center space-x-2">
       <Input v-model="hostId" type="text" placeholder="Enter Host ID to Join" />

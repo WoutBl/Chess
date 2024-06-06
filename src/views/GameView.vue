@@ -9,8 +9,8 @@
       Click the <Info class="mx-5" /> button to get the ID so your opponent can connect
     </p>
   </div>
-  <div v-else>
-    <div class="h-screen aspect-square mx-auto" v-if="!inCheckMate">
+  <div class="flex justify-center items-center h-screen" v-else>
+    <div class="w-screen lg:h-screen lg:w-auto aspect-square  lg:mx-auto" v-if="!inCheckMate">
       <div v-for="(rows, row) in BoardState" :key="row" class="row">
         <div
           v-for="(cell, col) in rows"
@@ -36,7 +36,7 @@
           />
         </div>
       </div>
-      <div class="extraInfo">
+      <div class="flex absolute top-0 left-1/2 -translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:left-20 lg:translate-x-0 ">
         <div class="turn-indicator">
           Current Turn: {{ currentPlayer === 'white' ? 'White' : 'Black' }}
         </div>
