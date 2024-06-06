@@ -6,7 +6,7 @@
     <div class="loader"></div>
     <p class="text-2xl mt-5">connecting to opponent</p>
     <p class="text-xl mt-5 flex">
-      Click the <Info class="mx-5" /> button to get the ID so your opponent can connect
+      Click the <Info class="mx-2" /> to connect to opponent.
     </p>
   </div>
   <div class="flex justify-center items-center h-screen" v-else>
