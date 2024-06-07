@@ -5,12 +5,10 @@
   >
     <div class="loader"></div>
     <p class="text-2xl mt-5">connecting to opponent</p>
-    <p class="text-xl mt-5 flex">
-      Click the <Info class="mx-2" /> to connect to opponent.
-    </p>
+    <p class="text-xl mt-5 flex">Click the <Info class="mx-2" /> to connect to opponent.</p>
   </div>
   <div class="flex justify-center items-center h-screen" v-else>
-    <div class="w-screen lg:h-screen lg:w-auto aspect-square  lg:mx-auto" v-if="!inCheckMate">
+    <div class="w-screen lg:h-screen lg:w-auto aspect-square lg:mx-auto" v-if="!inCheckMate">
       <div v-for="(rows, row) in BoardState" :key="row" class="row">
         <div
           v-for="(cell, col) in rows"
@@ -36,9 +34,12 @@
           />
         </div>
       </div>
-      <div class="flex absolute top-0 left-1/2 -translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:left-20 lg:translate-x-0 ">
+      <div
+        class="flex absolute top-0 left-1/2 -translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:left-20 lg:translate-x-0"
+      >
         <div class="turn-indicator">
-          Current Turn: {{ currentPlayer === 'white' ? 'White' : 'Black' }}
+          Turn: <br class="lg:hidden" />
+          {{ currentPlayer === 'white' ? 'White' : 'Black' }}
         </div>
       </div>
     </div>
