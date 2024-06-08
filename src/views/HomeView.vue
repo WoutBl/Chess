@@ -67,7 +67,7 @@ const joinHost = () => {
       //
     }, 800)
   } catch (error) {
-    
+
     console.error(error)
     // @ts-ignore
     errorMessage.value = error.message // Set error message
@@ -114,85 +114,5 @@ onMounted(() => {
   align-items: center;
   font-size: 48px;
   font-weight: bold;
-}
-
-.buttonContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 50px;
-}
-
-.button {
-  width: 400px;
-  height: 400px;
-  border-radius: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 32px;
-  font-weight: bold;
-  background-color: #ffffff;
-  border: 0;
-  box-sizing: border-box;
-  color: #111827;
-  font-family:
-    'Inter var',
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    system-ui,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial,
-    'Noto Sans',
-    sans-serif,
-    'Apple Color Emoji',
-    'Segoe UI Emoji',
-    'Segoe UI Symbol',
-    'Noto Color Emoji';
-  line-height: 1.25rem;
-  padding: 0.75rem 1rem;
-  text-align: center;
-  text-decoration: none #d1d5db solid;
-  text-decoration-thickness: auto;
-  box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.1),
-    0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  min-width: 150px;
-}
-
-.button:hover {
-  background-color: rgb(249, 250, 251);
-}
-
-.button:focus {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-}
-
-.button:focus-visible {
-  box-shadow: none;
-}
-
-.peer-actions {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  gap: 10px;
-  width: 50%;
-}
-
-.input {
-  padding-inline: 1rem;
-  padding-block: 0.5rem;
-  border-radius: 4px;
 }
 </style>
