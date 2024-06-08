@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { usePeerConnection, peerError } from '@/hooks/PeerConnection'
+import { usePeerConnection, peerError, isHost } from '@/hooks/PeerConnection'
 import { resetBoard, gameType } from '@/hooks/BoardState'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -55,6 +55,7 @@ const joinHost = () => {
     return
   }
   try {
+    console.log("testing with ", hostId.value )
     startPeer(hostId.value, false)
     setTimeout(() => {
       if (peerError.value) {

@@ -1,11 +1,11 @@
-import { Peer } from 'peerjs'
-import { ref } from 'vue'
+import { type DataConnection, Peer } from 'peerjs'
+import { ref, watch } from 'vue'
 import { currentPlayer, type Piece, inverted } from '@/hooks/BoardState'
 import { Player, renderCastle, type vector2 } from './MovePiece'
 import { useMovePiece } from './MovePiece'
 
 const peer = ref<Peer | null>(null)
-export const conn = ref<any>(null)
+export const conn = ref<DataConnection | null | undefined>(null)
 export const isHost = ref<boolean>(false)
 export const hostID = ref<string | undefined>(undefined)
 export const loading = ref<boolean>(true)
@@ -15,7 +15,7 @@ export const errorMessage = ref<string>('')
 const startPeer = (connectionId: string | null = null, host: boolean): Promise<void> => {
   return new Promise((resolve, reject) => {
     isHost.value = host
-
+    localStorage.setItem('isHost', isHost.value.toString())
     if (host) {
       createPeer()
     } else {
@@ -36,7 +36,7 @@ const startPeer = (connectionId: string | null = null, host: boolean): Promise<v
     peer.value?.on('open', (peerId) => {
       console.log('My peer ID is: ' + peerId)
       hostID.value = peerId
-      localStorage.setItem('hostId', peerId)
+
       if (host) {
         startHostConnection()
       }
@@ -71,11 +71,14 @@ const startHostConnection = () => {
 }
 
 const startReceiverConnection = (hostId: string | null) => {
+  console.log("hostID:" + localStorage.getItem('hostId'))
+  if(localStorage.getItem('hostId')){
+    hostId = localStorage.getItem('hostId')
+  }
   if (!hostId) {
     console.error('Host ID is required to connect as receiver')
     return
   }
-
   console.log('Connecting to host:', hostId)
   conn.value = peer.value?.connect(hostId)
   conn.value?.on('open', () => {
@@ -94,7 +97,7 @@ const startReceiverConnection = (hostId: string | null) => {
 }
 
 const setupConnectionHandlers = () => {
-  conn.value.on('data', (data: any) => {
+  conn.value?.on('data', (data: any) => {
     console.log('Received data:', data)
     if (data.type === 'move') {
       const { from, to, piece } = data.payload
@@ -115,13 +118,13 @@ const setupConnectionHandlers = () => {
 
   })
 
-  conn.value.on('close', () => {
+  conn.value?.on('close', () => {
     console.log('Connection closed')
     loading.value = true
     conn.value = null
   })
 
-  conn.value.on('error', (err: any) => {
+  conn.value?.on('error', (err: any) => {
     peerError.value = true
     errorMessage.value = 'Connection error: ' + err.message
     console.error('Connection error:', err)

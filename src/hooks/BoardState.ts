@@ -1,5 +1,5 @@
 import { Player, type vector2 } from '@/hooks/MovePiece'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 export type Piece = {
   type: PieceType
@@ -51,6 +51,8 @@ const initialBoard = [
 ]
 
 export const BoardState = ref<Board>(initialBoard)
+
+
 export const currentPlayer = ref<Player>(Player.white)
 export const gameFinished = ref<boolean>(false)
 export const inverted = ref<boolean>(false)

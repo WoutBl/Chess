@@ -21,7 +21,7 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { ChevronLeft, Info, Copy } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { hostID, isHost, loading } from './hooks/PeerConnection'
 import { Input } from '@/components/ui/input'
 
@@ -29,6 +29,9 @@ const route = useRouter()
 const state = ref('players')
 const copyEffect = ref(false) // New reactive state for copy effect
 const showCopiedPopup = ref(false) // New reactive state for showing the copied popup
+
+hostID.value = localStorage.getItem('hostID') as string
+
 
 const onClickState = (nextState: string) => {
   state.value = nextState
@@ -139,9 +142,9 @@ const copy = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem @click="mode = 'light'"> Light </DropdownMenuItem>
-        <DropdownMenuItem @click="mode = 'dark'"> Dark </DropdownMenuItem>
-        <DropdownMenuItem @click="mode = 'auto'"> System </DropdownMenuItem>
+        <DropdownMenuItem @click="mode = 'light'"> Light</DropdownMenuItem>
+        <DropdownMenuItem @click="mode = 'dark'"> Dark</DropdownMenuItem>
+        <DropdownMenuItem @click="mode = 'auto'"> System</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   </div>
