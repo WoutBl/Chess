@@ -106,6 +106,10 @@ const setupConnectionHandlers = () => {
     }
     if (data.type === "castle") {
       const { from, to } = data.payload
+      if(inverted) {
+        from.row = 7 - from.row
+        to.row = 7 - to.row
+      }
       renderCastle(from, to)
     }
 
