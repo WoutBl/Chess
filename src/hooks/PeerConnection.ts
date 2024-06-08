@@ -1,7 +1,7 @@
 import { Peer } from 'peerjs'
 import { ref } from 'vue'
 import { currentPlayer, type Piece, inverted } from '@/hooks/BoardState'
-import { Player, type vector2 } from './MovePiece'
+import { Player, renderCastle, type vector2 } from './MovePiece'
 import { useMovePiece } from './MovePiece'
 
 const peer = ref<Peer | null>(null)
@@ -104,6 +104,11 @@ const setupConnectionHandlers = () => {
       const { player } = data.payload
       changeTurn(player)
     }
+    if (data.type === "castle") {
+      const { from, to } = data.payload
+      renderCastle(from, to)
+    }
+
   })
 
   conn.value.on('close', () => {
@@ -131,6 +136,18 @@ const sendMove = (from: vector2, to: vector2, piece: Piece) => {
   console.log("sendMove")
   if (conn.value && conn.value.open) {
     conn.value.send({ type: 'move', payload: { from, to, piece } })
+  }
+}
+
+
+const sendCastleMove = (from: vector2, to: vector2, piece: Piece) =>  {
+  if (conn.value && conn.value.open) {
+    conn.value.send({
+      type: 'castle',
+      payload: {
+        from, to, piece
+      }
+    })
   }
 }
 
@@ -163,6 +180,7 @@ export const usePeerConnection = () => {
     sendMove,
     sendTurn,
     closeConnection,
+    sendCastleMove,
     isHost,
     peerError,
     errorMessage

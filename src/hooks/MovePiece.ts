@@ -623,31 +623,29 @@ const canCastle = (from: vector2, type: Player) => {
   return toVector
 }
 
+
+export const renderCastle = (from: vector2, to: vector2) => {
+
+  const rook = BoardState.value[from.row][from.col]
+  const king = BoardState.value[to.row][to.col]
+  BoardState.value[from.row][from.col] = null
+  BoardState.value[to.row][to.col] = null
+  // BoardState.value[to.row][to.col -1] = king
+  const direction = from.col === 0 ? -1 : 1
+  BoardState.value[to.row][to.col + direction] = rook
+  BoardState.value[to.row][to.col + direction * 2] = king
+
+}
+
 function hasCastled(from: vector2, to: vector2, piece: Piece): boolean {
-  const { sendMove, sendTurn } = usePeerConnection()
+  const { sendTurn, sendCastleMove  } = usePeerConnection()
   if (piece.type !== PieceType.ROOK) return false
 
   if (canCastle(from, piece.color)) {
-    const rook = BoardState.value[from.row][from.col]
-    const king = BoardState.value[to.row][to.col]
-    BoardState.value[from.row][from.col] = null
-    BoardState.value[to.row][to.col] = null
-    // BoardState.value[to.row][to.col -1] = king
-    const direction = from.col === 0 ? -1 : 1
-    BoardState.value[to.row][to.col + direction] = rook
-    BoardState.value[to.row][to.col + direction * 2] = king
-
+    renderCastle(from,to)
     currentPlayer.value = currentPlayer.value === Player.white ? Player.black : Player.white // Switch turns
     sendTurn(currentPlayer.value)
-    sendMove(
-      { row: to.row, col: to.col },
-      { row: to.row, col: to.col + direction * 2 },
-      {
-        color: piece.color,
-        type: PieceType.KING
-      }
-    ) // Send the king move to the peer
-    sendMove({ row: from.row, col: from.col }, { row: to.row, col: to.col + direction }, piece) // Send the rook to the peer
+    sendCastleMove(from, to, piece)
     return true
   }
   return false
